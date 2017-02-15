@@ -21,7 +21,11 @@
     "underscore": "^1.8.3"
   },
   "main": "./bin/www",
-  "devDependencies": {},
+  "devDependencies": {
+    "browser-sync": "^2.18.8",
+    "gulp": "^3.9.1",
+    "gulp-nodemon": "^2.2.1"
+  },
   "author": "",
   "license": "ISC",
   "description": ""
