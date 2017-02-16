@@ -17,11 +17,33 @@ exports.signup = (req, res) => {
           console.log(err);
           return;
         }
-        res.redirect("/admin/userlist");
+        res.redirect("/admin/user");
       })
     }
   })
-}
+};
+
+exports.signupAdmin = (req, res) => {
+  var _user = req.body.user;
+  User.findOne({ username: _user.username }, (err, user) => {
+    if (err) {
+      console.log('find user error: \n' + err);
+      return;
+    }
+    if (user) {
+      res.redirect('/');
+    } else {
+      var user = new(_user);
+      user.save((err, user) => {
+        if (err) {
+          console.log('save user error: \n' + err);
+          return;
+        }
+        res.redirect("/admin/user");
+      })
+    }
+  })
+};
 
 //show signin page
 exports.showSignin = (req, res) => {
@@ -41,7 +63,7 @@ exports.showSignup = (req, res) => {
 exports.list = function(req, res) {
   User.fetch((err, users) => {
     if (err) handleError(err);
-    res.render('userList', {
+    res.render('user_list', {
       title: "imooc 列表页",
       users: users
     })

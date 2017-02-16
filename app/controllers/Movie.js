@@ -158,9 +158,10 @@ exports.detail = function(req, res) {
 exports.new = function(req, res) {
   Category.find((err, categories) => {
     if (err) {
-      console.log(err);
+      console.log('Movie new without category error:\n' + err);
       return;
     }
+
     res.render('movie_admin', {
       title: '电影录入页',
       categories: categories,

@@ -11,7 +11,7 @@ var UserSchema = new Schema({
   password:String,
   role:{
     type:Number,
-    default:0
+    default:99
   },
   meta:{
     createAt:{

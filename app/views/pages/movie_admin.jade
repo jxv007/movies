@@ -3,7 +3,7 @@ extends ../layout
 block content
   .contaniner
     .row
-      form.form-horizontal(method="post",action="/admin/movie/save")
+      form.form-horizontal(method="post", action="/admin/movie/save")
         if movie._id
           input(type="hidden", name="movie[_id]",value=movie._id)
         .form-group
