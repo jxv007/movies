@@ -11,7 +11,7 @@
       if user
         span 欢迎你 #{user.username} | 
         if (10<user.role)
-            a.navbar-link(href="/admin/movie") 后台管理 |
+            a.navbar-link(href="/admin") 后台管理 |
         a.navbar-link(href="/logout") 退出
       else
         a.navbar-link(href="#",data-toggle="modal",data-target="#signupModal") 注册

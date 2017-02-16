@@ -6,7 +6,7 @@ var browserSync = require('browser-sync');
 gulp.task('nodemon', function(){
     var stream = nodemon({
         script: './bin/www'
-      , ext: 'js html'
+      , ext: 'js'
       , env: { 'NODE_ENV': 'development'}
     });
     

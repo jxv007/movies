@@ -12,7 +12,7 @@ exports.update = (req, res) => {
         return;
       }
       Category.find((err, categories) => {
-        res.render('admin', {
+        res.render('movie_admin', {
           title: '后台更新页',
           movie: movie,
           categories: categories
@@ -110,7 +110,7 @@ exports.list = function(req, res) {
     .populate('category')
     .exec((err, movies) => {
       if (err) handleError(err);
-      res.render('list', {
+      res.render('movie_list', {
         title: "imooc 列表页",
         movies: movies
       })
@@ -145,8 +145,8 @@ exports.detail = function(req, res) {
       .find({ movie: id })
       .populate('from rely.from rely.to', 'username')
       .exec((err, comments) => {
-        res.render('detail', {
-          title: 'imooc 详情页',
+        res.render('movie_detail', {
+          title: '影片详情',
           movie: movie,
           comments: comments
         })
@@ -161,8 +161,8 @@ exports.new = function(req, res) {
       console.log(err);
       return;
     }
-    res.render('admin', {
-      title: 'imooc 后台录入页',
+    res.render('movie_admin', {
+      title: '电影录入页',
       categories: categories,
       movie: {}
     })
