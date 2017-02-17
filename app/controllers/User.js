@@ -24,14 +24,14 @@ exports.signup = (req, res) => {
 }
 
 //show signin page
-exports.showSignin = (req,res)=>{
+exports.showSignin = (req, res) => {
   res.render('signin',{
     title:"imooc 登录页面"
   });
 }
 
 //show signup page
-exports.showSignup = (req,res)=>{
+exports.showSignup = (req, res) => {
   res.render('signup',{
     title:"imooc 注册页面"
   });
@@ -82,7 +82,7 @@ exports.logout = (req, res) => {
 }
 
 //middleware
-exports.signinRequired = (req,res,next)=>{
+exports.signinRequired = (req, res, next)=>{
   var user = req.session.user;
   if(!user){
     res.redirect('/signin');
@@ -90,7 +90,7 @@ exports.signinRequired = (req,res,next)=>{
   next();
 }
 
-exports.adminRequired = (req,res,next)=>{
+exports.adminRequired = (req, res, next)=>{
   var user = req.session.user;
   if(user.role <= 10){
     res.redirect('/signin');

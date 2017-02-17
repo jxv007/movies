@@ -1,0 +1,41 @@
+extends ../layout
+
+block content
+  .contaniner
+    .row
+      form.form-horizontal(method="post", action="/admin/spider/save")
+        .form-group
+          label.col-sm-3.control-label(for = "inputTitle") 电影名字
+          .col-sm-7
+            input#inputTitle.form-control(type = "text", name="movie[title]", value=movie.title)
+        .form-group
+          label.col-sm-3.control-label(for = "inputDirector") 导演
+          .col-sm-7
+            input#inputDirector.form-control(type="text",name="movie[director]", value=movie.director)
+        .form-group
+          label.col-sm-3.control-label(for="inputCountry") 国家
+          .col-sm-7
+            input#inputCountry.form-control(type="text",name="movie[country]", value=movie.country)
+        .form-group.0
+          label.col-sm-3.control-label(for="inputLanguage") 语言
+          .col-sm-7
+            input#inputLanguage.form-control(type="text",name="movie[language]", value=movie.language)
+        .form-group
+          label.col-sm-3.control-label(for="inputPoster") 海报地址
+          .col-sm-7
+            input#inputPoster.form-control(type="text",name="movie[poster]", value=movie.poster)
+        .form-group
+          label.col-sm-3.control-label(for="inputFlash") 片源地址
+          .col-sm-7
+            input#inputFlash.form-control(type="text",name="movie[flash]", value=movie.flash)
+        .form-group
+          label.col-sm-3.control-label(for="inputYear") 上映年份
+          .col-sm-7
+            input#inputYear.form-control(type="text",name="movie[year]", value=movie.year)
+        .form-group
+          label.col-sm-3.control-label(for="inputDescription") 电影简介
+          .col-sm-7
+            input#inputDescription.form-control(type="text",name="movie[description]", value=movie.description)
+        .form-group
+          .col-sm-offset-2.col-sm-10
+            button.btn.btn-danger(type="submit") 开始抓取
