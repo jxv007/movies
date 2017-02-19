@@ -4,16 +4,33 @@ var fs = require('fs');
 var request = require('request');
 var iconv = require('iconv-lite');
 var BufferHelper = require('bufferhelper');
+var Promise = require('bluebird');
 
 var i = 0;
-var url = 'http://www.ygdy8.net/html/gndy/dyzz/20170215/53233.html';
+var baseUrl = 'http://www.dy2018.com';
+var exUrl = '.html';
+var movieIds = [97150, 97322];
 
+// 1. 传入电影列表 url, 拿到要抓取的电影列表;
+// 2. 解析列表, 并创建抓取影片详情的 Promise 任务数组
+// 3. 执行抓取影片的任务（解析并保存数据）
+// 4. 显示抓取结果
 
-
+// 获取取网页内容
 exports.fetchPage = (req, res) => {
-    var _url = req.body.url;
-    startRequest(url);
     
+
+
+     getPageAsync( 'http://www.dy2018.com/html/gndy/dyzz/index.html')
+        .then(function (html){ parseList(html) })
+
+    // getPageAsync( 'http://www.dy2018.com/html/gndy/dyzz/index.html' )
+    //     .then( parseList( html ))
+        // .all( fetchMovieArray )
+        // .then( function ( pages ) {
+
+        // });
+    // res.redirect('/admin/spider/list');
 };
 
 exports.list = function(req, res){
@@ -23,65 +40,100 @@ exports.list = function(req, res){
     })
 };
 
-function startRequest(url){
-    http.get(url, function (res){
-        var html = '';
-        var titles = [];
-        var bufferHelper = new BufferHelper();
+// 解析列表, 并创建抓取影片详情的 Promise 任务数组
+function parseList ( html ) {
+    console.log('开始解析列表');
+    var $ = decodeHtml(html);
+    var fetchArray = [];
+    var _ids = [];
+    var _id = '';
+    $('.co_content8 a').each(function (){
+        _id = $(this).attr('href');
+        // todo: 判断一下 _id 是否是包含 /i/
+        _ids.push(_id);
+        console.log($(_id);
+    });
+    
+    _ids.forEach( function (id) {
+        fetchArray.push( getPageAsync(parseUrl(id)));
+    });
+    
+    if ( fetchArray === []) {
+        console.log('获取列表失败, 网页详情：' + $.text());
+        return;
+    }
+    getPageAsync()
+        .all (fetchArray)
+        .then (function (html) {
+            filterMovies ( html );
+        } );
+};
 
-        res
-            .on('data', function (chunk){
-                bufferHelper.concat(chunk);
-            })
-            .on('end', function (){
-                html = iconv.decode(bufferHelper.toBuffer(), 'gb2312'); //转码
-                var $ = cheerio.load(html); //使用 cheerio 解析
-                var title = $('.title_all font').text().trim();
-                var introduce = $('.co_content8 p').text().trim();
-                var imgurl = $('.co_content8 p img').attr('src').trim();
-
-                var movie = {
-                    title: title,
-                    introduce: introduce,
-                    imgurl: imgurl
-                };
-
-                console.log('标题：' + movie.title + '\n');
-                console.log(movie.introduce + '\n');
-                console.log(movie.imgurl + '\n');
-                
-            })
-        
-        re
-    })
+function parseUrl (id) {
+    return baseUrl + id;
 }
 
-// 抓取电影天堂dy2018.com网站上的电影数据
-// 抓取到本地存储，并显示出来
+// 抓取指定 url 网页内容，并返回 Promise 实例
+function getPageAsync ( url ) {
+    return new Promise( function (resolve, reject) {
+        console.log('开始抓取网址：' + url);
+        
+        http.get(url, function (res) {
+            var bufferHelper = new BufferHelper();
+            res
+                .on('data', function (chunk){
+                    bufferHelper.concat(chunk);
+                })
+                .on('end', function (){
+                    resolve(bufferHelper.toBuffer());
+                    console.log(bufferHelper.toBuffer());
+                    console.log('抓取成功！');
+                })
+                .on('error', function(e){
+                    reject(e);
+                    console.log('抓取失败！');
+                });
+        });
+    });
+};
 
-// 数据结构：
-// var movies = {
-//     title: title,
-//     name1: name1,               // 译　　名　奇异博士/斯特兰奇博士/史特兰奇博士/奇怪博士/怪奇医生/奇异医生/史奇医生
-//     name2: name2,               // 片　　名　Doctor Strange
-//     year: year,                 // 年　　代　2016
-//     country: [],                // 国　　家　美国
-//     category: [],               // 类　　别　动作/科幻/奇幻/冒险
-//     language: language,         // 语　　言　英语
-//     subtitle: subtitle,         // 字　　幕　中英双字幕
-//     imdb: imdb,                 // IMDb评分  7.8/10 from 199,761 users
-//     douban: douban,             // 豆瓣评分　7.8/10 from 184,372 users
-//     format: format,             // 文件格式　x264 + aac
-//     videoSize: videoSize,       // 视频尺寸　1280 x 720
-//     fileSize: fileSize,         // 文件大小　1CD
-//     videoLength: videoLength,   // 片　　长　115分钟
-//     director: director,         // 导　　演　斯科特·德瑞克森 Scott Derrickson
-//     starring: [],               // 主　　演　本尼迪克特·康伯巴奇 Benedict Cumberbatch
-//     intro: intro,               // 简　　介
-//     award: award,               // 获奖情况
-//     poster: poster,             // 海报图片地址
-//     imgs: [],                   // 影片截图
-//     trailer: []                 // 预告片地址
-// };
+// 将网页转为 UTF-8，并返回 cheerio 解析解析的 DOM
+function decodeHtml ( html, charset = 'gb2312' ) {
+    var _html = iconv.decode(html, charset);
+    console.log (_html);
+    return (cheerio.load( _html ));
+};
 
+// 解析电影详情网页内容
+function filterMovies ( html ) {
+    var $ = decodeHtml(html);
+    var title = $('.title_all h1').text().trim();
+    var introduce = $('#Zoom p').text().trim();
+    // var imgs = $('#Zoom p img');
+    // var poster = '';
+    // var imgUrl = '';
+    var download = $('#Zoom a').attr('href');
+
+    // if (imgs[0]) {
+    //     poster = imgs[0].attr('src');
+    //     imgUrl = imgs[1].attr('src');
+    // } else {
+    //     poster = imgs.attr('src');
+    // } 
+
+    var movie = {
+        title: title,
+        introduce: introduce,
+        download: download
+    };
+
+    printData(movie);
+};
+
+// 打印影片数据
+function printData (movie) {
+    console.log('标题：' + movie.title + '\n');
+    console.log(movie.introduce + '\n');
+    console.log(movie.download + '\n');
+}
 

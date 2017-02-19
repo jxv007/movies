@@ -49,7 +49,7 @@ module.exports = function(app){
 
   //Spider
   // app.get('/admin/spider/new', Spider.new);
-  app.post('/admin/spider/save', Spider.fetchPage);
+  app.get('/admin/spider/fetchPage', Spider.fetchPage);
   app.get('/admin/spider/list', Spider.list);
 
 // catch 404 and forward to error handler
