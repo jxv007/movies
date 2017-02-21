@@ -4,17 +4,16 @@ var Category = require('../models/category.js');
 //index page
 exports.index = (req, res) => {
   Category
-    .find()
-    .populate('movies')
-    .exec((err,categories)=>{
-    if(err){
-      console.log(err);
-      return;
-    }
-    console.log(categories);
-    res.render('index', {
-      title: 'imooc 首页',
-      categories:categories
-    })
-  })
-}
+    .find() // 找到所有分类
+    .populate({path: 'movies', options: {limit: 5}}) //每个分类只取5条记录
+    .exec( (err,categories) => {
+      if(err){
+        console.log(err);
+        return;
+      }
+      res.render('index', {
+        title: 'IVR影院首页',
+        categories: categories
+      });
+    });
+};

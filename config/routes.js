@@ -45,7 +45,7 @@ module.exports = function(app){
   //Category
   app.get('/admin/category/new', User.signinRequired, User.adminRequired, Category.new);
   app.post('/admin/category/save', User.signinRequired, User.adminRequired, Category.save);
-  app.get('/admin/category', User.signinRequired, User.adminRequired, Category.list);
+  app.get('/admin/category/list', User.signinRequired, User.adminRequired, Category.list);
 
   //Spider
   // app.get('/admin/spider/new', Spider.new);

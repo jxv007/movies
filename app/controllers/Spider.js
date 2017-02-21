@@ -5,12 +5,18 @@ var request = require('request');
 var iconv = require('iconv-lite');
 var BufferHelper = require('bufferhelper');
 var Promise = require('bluebird');
-var Movie = require('Movie');
+var Movie = require('./Movie');
+// var mongoose = require('mongoose');
+// var Schema = mongoose.Schema;
+// var ObjectId = Schema.Types.ObjectId;
 
 var i = 0;
 var baseUrl = 'http://www.dy2018.com';
 var exUrl = '.html';
-var movieIds = [97150, 97322];
+var maxNum = 1;
+var imgPath = '/images'
+
+var movies = [];
 
 // 1. 传入电影列表 url, 拿到要抓取的电影列表;
 // 2. 解析列表, 并创建抓取影片详情的 Promise 任务数组
@@ -19,106 +25,135 @@ var movieIds = [97150, 97322];
 
 // 获取取网页内容
 exports.fetchPage = (req, res) => {
-     getPageAsync( 'http://www.dy2018.com/html/gndy/dyzz/index.html')
-        .then(function (html){ parseList(html) })
-};
+     getPageAsync ( 'http://www.dy2018.com/html/gndy/dyzz/index.html')
+        .then ( parseList )
+        
 
-exports.list = function(req, res){
-    res.render('spider_list', {
-        title: '抓取结果列表',
-        movies: {}
-    })
-};
 
-// 解析列表, 并依次抓取影片详情
+// 解析列表, 并依次抓取影片数据
 function parseList ( html ) {
-    console.log('开始解析列表');
-    var $ = decodeHtml(html);
-    var fetchArray = [];
-    var _id = '';
-    $('.co_content8 a').each( function (){
-        _id = $(this).attr('href');
-        if ( '/i/' === _id.substr(0,3) ){
-            getPageAsync(parseUrl(_id)).then (function (html) {
-                    filterMovies (html);
-                });
-        }
+    return new Promise( function (resolve, reject) {
+        console.log('开始解析列表');
+        var $ = decodeHtml(html);
+        var _id = '';
+        var i = 0;
+        $('.co_content8 a').each( function (){
+            if ( i >= maxNum ) return false;
+            i++;
+            _id = $(this).attr('href');
+            if ( '/i/' === _id.substr(0,3) ){
+                getPageAsync (parseUrl (_id))
+                    .then ( filterMovie )
+                    .then ( saveMovie )
+                    .then ( showMovie )
+                    
+            }
+        });
     });
-};
-
-var MovieSchema = {
-    title: String          // 标　　题
-  , name: String           // 译　　名　奇异博士/斯特兰奇博士/史特兰奇博士/奇怪博士/怪奇医生/奇异医生/史奇医生
-  , oldName: String        // 片　　名　Doctor Strange
-  , year: Number           // 年　　代　2016
-  , country: String        // 国　　家　美国
-  , category:{             // 类　　别　动作/科幻/奇幻/冒险
-        type:ObjectId
-      , ref:'Category'
-    }               
-  , language: String        // 语　　言　英语
-  , subtitle: String        // 字　　幕　中英双字幕
-  , imdb: String            // IMDb评分  7.8/10 from 199,761 users
-  , douban: String          // 豆瓣评分　7.8/10 from 184,372 users
-  , format: String          // 文件格式　x264 + aac
-  , videoSize: String       // 视频尺寸　1280 x 720
-  , fileSize: String        // 文件大小　1CD
-  , videoLength: String     // 片　　长　115分钟
-  , director: String        // 导　　演　斯科特·德瑞克森 Scott Derrickson
-  , starring: []            // 主　　演　本尼迪克特·康伯巴奇 Benedict Cumberbatch
-  , intro: String           // 简　　介
-  , award: String           // 获奖情况
-  , poster: String          // 海报图片地址
-  , imgs: String            // 影片截图
-  , trailer: String         // 预告片地址
-  , state: {                // 状态：0 - 草稿；1 - 待审核； 2 - 审核通过； 3 - 审核未通过
-      type: Number,
-      default: 0 
-    }         
-  , meta:{
-      createAt:{
-        type:Date,
-        default:Date.now()
-      }
-    , updateAt:{
-        type:Date,
-        default:Date.now()
-      }
-    }
 };
 
 
 // 解析电影详情网页内容
-// TODO: 解析影片数据，存储到数据库，并显示出来
-
-function filterMovies ( html ) {
+function filterMovie ( html ) {
     console.log('开始解析影片详情页面')
+    var title, name = '', oldName, year, country, language, type, subtitle, imdb, douban, format, videoSize, fileSize, videoLength, director, starring, intro, poster, imgs;
+    var starring = [], awards = [], catetorys = [];
+
     var $ = decodeHtml(html);
-    var title = $('.title_all h1').text().trim();
-    var introduce = $('#Zoom p').text().trim();
-    // var imgs = $('#Zoom p img');
-    // var poster = '';
-    // var imgUrl = '';
+    
+    title = $('.title_all h1').text().trim();
+    $('.co_content8 .position a').each(function (){
+        catetorys.push($(this).text());
+    });
+
+    // poster = saveImage( $('#Zoom p img').first().attr('src'), 'poster.jpg');
+    poster = $('#Zoom p img').first().attr('src');
+    imgs = $('#Zoom p img').last().attr('src');
+
+    var _txt = '';
+    var _t = '';
+     $('#Zoom p').each( function () {
+         _txt = $(this).text().trim()
+         if ( _t = _txt.split('◎译　　名')[1] ) {
+            name = _t.trim();
+         }
+         if ( _t = _txt.split('◎片　　名')[1] ) {
+            oldName = _t.trim();
+         }
+         if ( _t = _txt.split('◎年　　代')[1] ) {
+            year = _t.trim();
+         }
+         if ( _t = _txt.split('◎国　　家')[1] ) {
+            country = _t.trim();
+         }
+         if ( _t = _txt.split('◎类　　别')[1] ) {
+            type = _t.trim();
+         }
+         if ( _t = _txt.split('◎语　　言')[1] ) {
+            language = _t.trim();
+         }
+         if ( _t = _txt.split('◎字　　幕')[1] ) {
+            subtitle = _t.trim();
+         }
+         if ( _t = _txt.split('◎IMDb评分')[1] ) {
+            idmb = _t.trim();
+         }
+         if ( _t = _txt.split('◎豆瓣评分')[1] ) {
+            douban = _t.trim();
+         }
+         if ( _t = _txt.split('◎文件格式')[1] ) {
+            format = _t.trim();
+         }
+         if ( _t = _txt.split('◎视频尺寸')[1] ) {
+            videoSize = _t.trim();
+         }
+         if ( _t = _txt.split('◎文件大小')[1] ) {
+            fileSize = _t.trim();
+         }
+         if ( _t = _txt.split('◎片　　长')[1] ) {
+            videoLength = _t.trim();
+         }
+         if ( _t = _txt.split('◎导　　演')[1] ) {
+            director = _t.trim();
+         }
+         if ( _t = _txt.split('◎主　　演')[1] ) {
+             starring.push( _t.trim() );
+             $(this).nextAll().each( function () {
+                 _t = $(this).text();
+                 if ( _t && _t.indexOf('◎简　　介') >= 0 ){
+                     return false;
+                 } else {
+                    starring.push(_t.trim());
+                 }
+             })
+         }
+         if ( _t = _txt.split('◎简　　介')[1] ) {
+            intro = _t.trim();
+         }
+         if ( _t = _txt.split('◎获奖情况')[1] ) {
+            awards.push( _t.trim() );
+             $(this).nextAll().each( function () {
+                 _t = $(this).text();
+                 if ( _t && _t.indexOf('◎影片截图') >= 0 ){
+                     return false;
+                 } else {
+                    awards.push(_t.trim());
+                 }
+             })
+         }
+     })
+
     var download = $('#Zoom a').attr('href');
-
-    // if (imgs[0]) {
-    //     poster = imgs[0].attr('src');
-    //     imgUrl = imgs[1].attr('src');
-    // } else {
-    //     poster = imgs.attr('src');
-    // } 
-
+    
     var movie = {
           title: title 
         , name: name 
         , oldName: oldName 
         , year: year
         , country: country 
-        , category:{
-              type:ObjectId
-            , ref:'Category'
-            }               
-        , language: language 
+        , category: catetorys
+        , language: language
+        , type: type 
         , subtitle: subtitle  
         , imdb: imdb  
         , douban: douban   
@@ -129,39 +164,65 @@ function filterMovies ( html ) {
         , director: director 
         , starring: []    
         , intro: intro      
-        , award: award   
+        , award: awards   
         , poster: poster   
         , imgs: imgs   
-        , trailer: trailer  
-        , state: {        
-            type: Number,
-            default: 0 
-        } 
-        , meta:{
-            createAt:{
-                type:Date,
-                default:Date.now()
-            }
-            , updateAt:{
-                type:Date,
-                default:Date.now()
-            }
-            }
-        };
+        // , trailer: trailer  
+        // , state: {        
+        //     type: Number,
+        //     default: 0 
+        // }
+        // , meta:{
+        //     createAt:{
+        //         type:Date,
+        //         default:Date.now()
+        //     }
+        //     , updateAt:{
+        //         type:Date,
+        //         default:Date.now()
+        //     }
+        // }
+    };
+    return movie;
+};
 
-    printData(movie);
+function showMovie( movie ){
+    // movies.push(movie);
+    // res.redirect('/admin/spider/list');
+}
+
+function saveImage ( url, name ) {
+    var _url = imgPath + name;
+    http.get( url, function(res) {
+        var _imgData = '';
+        res.setEncoding('binary');
+
+        res
+            .on('data', function(chunk){
+                _imgData += chunk;
+            })
+            .on('end', function(){
+                fs.writeFile(_url, _imgData, 'binary', function(err){
+                    if (err){
+                        console.log('获取图片错误：\n' + err);
+                    }
+                    return _url;
+                })
+            })
+        
+    });
 };
 
 function saveMovie (movie) {
     // TODO:调用 Movie.save 保存影片到数据库中，保存图片到本地服务器
-
+    Movie.saveMovie(movie);
 }
 
 // 抓取指定 url 网页内容，并返回 Promise 实例
 function getPageAsync ( url ) {
     return new Promise( function (resolve, reject) {
         console.log('开始抓取网址：' + url);
-        if ( undefined === url) return;
+        if ( undefined === url) reject();
         http.get(url, function (res) {
             var bufferHelper = new BufferHelper();
             res
@@ -170,7 +231,6 @@ function getPageAsync ( url ) {
                 })
                 .on('end', function (){
                     resolve(bufferHelper.toBuffer());
-                    console.log(bufferHelper.toBuffer());
                     console.log('抓取成功！');
                 })
                 .on('error', function(e){
@@ -199,3 +259,13 @@ function decodeHtml ( html, charset = 'gb2312' ) {
 function parseUrl (id) {
     return baseUrl + id;
 }
+
+};
+
+exports.list = function(req, res){
+    res.render('spider_list', {
+        title: '抓取结果列表',
+        movies: movies
+    })
+};
+

@@ -110,6 +110,7 @@ exports.list = function(req, res) {
     .populate('category')
     .exec((err, movies) => {
       if (err) handleError(err);
+      console.log(movies);
       res.render('movie_list', {
         title: "imooc 列表页",
         movies: movies
@@ -154,7 +155,7 @@ exports.detail = function(req, res) {
   })
 }
 
-// admin page
+// 显示影片录入页
 exports.new = function(req, res) {
   Category.find((err, categories) => {
     if (err) {
@@ -168,4 +169,58 @@ exports.new = function(req, res) {
       movie: {}
     })
   })
-}
+};
+
+exports.saveMovie = function (movie){
+  console.log('保存影片数据：');
+    console.log(movie.category);
+    var _cats = [];
+    movie.category.forEach( function (name){
+      console.log(name);
+      Category.findOne( {name: name}, function(err, category) {
+        if (err) {
+          console.log(err);
+          return;
+        }
+        if ( !category ) {
+            var category = new Category({name: name});
+            category.save((err, category) => {
+              if (err) {
+                console.log(err);
+                return;
+              }
+            });
+        }
+        _cats.push( category );
+      });
+    });
+
+    movie.category = _cats;
+
+    var _movie = new Movie(movie);
+
+    _movie.save( function (err, movie) {
+      if (err) {
+        console.log(err);
+        return;
+      }
+    
+      // 遍历电影分类数组，在每一个电影分类中关联此电影的ID
+      movie.category.forEach( function (id){
+        Category.findOne( {id: id}, function(err, category) {
+          console.log(category.name);
+          if (err) {
+            console.log(err);
+            return;
+          }
+          category.movies.push(movie);
+          category.save((err, category) => {
+              if (err) {
+                console.log(err);
+                return;
+              }
+            });
+        });
+      });
+    });
+};

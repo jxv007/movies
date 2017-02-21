@@ -11,7 +11,7 @@ block content
         thead
           tr
             th 电影名字
-            th 电影类别
+            //- th 电影类别
             th 导演
             th 国家
             th 上映时间
@@ -22,8 +22,8 @@ block content
         tbody
           each item in movies
             tr(class="item-id-"+item._id)
-              td #{item.title}
-              td #{item.category.name}
+              td #{item.name}
+              //- td #{item.category.name}
               td #{item.director}
               td #{item.country}
               td #{item.year}

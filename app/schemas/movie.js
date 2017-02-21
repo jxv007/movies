@@ -32,12 +32,12 @@ var MovieSchema = new Schema({
     title: String          // 标　　题
   , name: String           // 译　　名　奇异博士/斯特兰奇博士/史特兰奇博士/奇怪博士/怪奇医生/奇异医生/史奇医生
   , oldName: String        // 片　　名　Doctor Strange
-  , year: Number           // 年　　代　2016
+  , year: String           // 年　　代　2016
   , country: String        // 国　　家　美国
-  , category:{             // 类　　别　动作/科幻/奇幻/冒险
-        type:ObjectId
-      , ref:'Category'
-    }               
+  , category:[{             // 类　　别　动作/科幻/奇幻/冒险
+        type: ObjectId
+      , ref: 'Category'
+    }]
   , language: String        // 语　　言　英语
   , subtitle: String        // 字　　幕　中英双字幕
   , imdb: String            // IMDb评分  7.8/10 from 199,761 users
@@ -49,7 +49,7 @@ var MovieSchema = new Schema({
   , director: String        // 导　　演　斯科特·德瑞克森 Scott Derrickson
   , starring: []            // 主　　演　本尼迪克特·康伯巴奇 Benedict Cumberbatch
   , intro: String           // 简　　介
-  , award: String           // 获奖情况
+  , award: []           // 获奖情况
   , poster: String          // 海报图片地址
   , imgs: String            // 影片截图
   , trailer: String         // 预告片地址
