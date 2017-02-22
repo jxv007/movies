@@ -25,7 +25,10 @@ block content
           each item in movies
             tr(class="item-id-"+item._id)
               td #{item.title}
-              td #{item.category.name}
+              if (item.category)
+                td #{item.category.name}
+              else
+                td
               td #{item.director}
               td #{item.country}
               td #{item.year}
@@ -34,5 +37,5 @@ block content
               td: a(target="_blank", href="../movie/"+item._id) 查看
               td: a(target="_blank", href="/admin/movie/update/"+item._id) 修改
               td
-                button.btn.btn-danger.del(type="button",data-id="#{item._id}") 删除
+                button#delMovie.btn.btn-danger(type = "button", data-id = "#{item._id}") 删除
   script(src="/js/admin.js")     

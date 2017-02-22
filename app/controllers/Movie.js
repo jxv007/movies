@@ -33,11 +33,7 @@ exports.save = (req, res) => {
         console.log(err);
         return;
       }
-      /*_movie = _.extend(movie,movieObj);
-      _movie.save((err,movie)=>{
-        if(err) return handleError(err);
-        res.redirect('/movie/'+movie._id);
-      })*/
+
       var originCategoryId = movie.category.toString();
       Movie.findOneAndUpdate({ _id: id }, movieObj, { new: true }, (err, movie) => {
         if (err) {
@@ -80,6 +76,9 @@ exports.save = (req, res) => {
 
     })
   } else {
+    newMovie(movieObj, function(){
+      res.redirect('/admin/movie/' + movie._id);
+    })
     _movie = new Movie(movieObj);
     var categoryId = _movie.category;
     _movie.save((err, movie) => {
@@ -103,6 +102,8 @@ exports.save = (req, res) => {
   }
 }
 
+
+
 // list page
 exports.list = function(req, res) {
   Movie
@@ -121,8 +122,6 @@ exports.list = function(req, res) {
 //list delete movie
 exports.del = (req, res) => {
   var id = req.query.id;
-  console.log(333);
-  console.log(id);
   if (id) {
     Movie.remove({ _id: id }, (err, movie) => {
       if (err) {
@@ -171,56 +170,95 @@ exports.new = function(req, res) {
   })
 };
 
-exports.saveMovie = function (movie){
+// 保存抓取的影片数据
+// 1. 查找是否已经存在相同名称、相同导演的影片，如存在则做更新处理
+// 2. 查找影片类型是否都已经存在，不存在的要创建类型
+// 3. new Movie, 保存，保存影片时，需要更新类型中的引用。
+exports.saveMovie = function (movieObj){
   console.log('保存影片数据：');
-    console.log(movie.category);
-    var _cats = [];
-    movie.category.forEach( function (name){
-      console.log(name);
-      Category.findOne( {name: name}, function(err, category) {
+
+  var _asyncArray = [];
+  movieObj.category.forEach( function (name) {
+    _asyncArray.push(getCategoryIdAsync(name));
+  })
+  
+  Promise.all(_asyncArray)
+    .then( res => {
+      console.log(res);
+      movieObj.category = res;
+      newMovie(movieObj);
+    })
+};
+
+function getCategoryIdAsync (name){
+  return new Promise( function (resolve, reject) {
+      Category.findByName(name, function(err, category){
         if (err) {
           console.log(err);
           return;
         }
-        if ( !category ) {
-            var category = new Category({name: name});
-            category.save((err, category) => {
-              if (err) {
-                console.log(err);
-                return;
-              }
-            });
+
+        if ( category ) {
+          resolve( category._id );
+        } else {
+          category = new Category({name: name});
+          category.save( (err, category) => {
+            if (err) {
+              console.log(err);
+              return;
+            }
+           resolve( category._id );
+          });
         }
-        _cats.push( category );
       });
+  });
+}
+
+// 创建 Movie 实例，保存到数据库，并关联 movie 和 category
+// 注意 category 应该是 categoryId 数组
+function newMovie ( movieObj, cb ) {
+  console.log('创建影片实例')
+  console.log(movieObj);
+  var movie = new Movie( movieObj );
+  movie.save( function (err, movie) {
+    if (err) {
+      console.log(err);
+      return;
+    }
+
+    movieObj.category.forEach(function (categoryId){
+      saveCategory(movie._id, categoryId);
     });
-
-    movie.category = _cats;
-
-    var _movie = new Movie(movie);
-
-    _movie.save( function (err, movie) {
-      if (err) {
-        console.log(err);
-        return;
-      }
-    
-      // 遍历电影分类数组，在每一个电影分类中关联此电影的ID
-      movie.category.forEach( function (id){
-        Category.findOne( {id: id}, function(err, category) {
-          console.log(category.name);
-          if (err) {
-            console.log(err);
-            return;
-          }
-          category.movies.push(movie);
-          category.save((err, category) => {
-              if (err) {
-                console.log(err);
-                return;
-              }
-            });
-        });
-      });
-    });
+    if (cb) cb();
+  });
+  return movie;
 };
+
+
+// 给影片增加类别
+function saveCategory(movieId, categoryId){
+  Movie.findById(movieId, function(err, movie){
+    if (err) {
+      console.log(err);
+      return;
+    }
+
+    if (movie) {
+      Category.findById(categoryId, function(err, category){
+        if (err) {
+          console.log(err);
+          return;
+        }
+        if (category) {
+          movie.category.push(categoryId);
+          movie.save(function(err, movie){
+            if (err) {
+              console.log(err);
+              return;
+            }
+          });
+        }
+      });
+    }
+  });
+}

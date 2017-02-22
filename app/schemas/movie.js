@@ -56,7 +56,7 @@ var MovieSchema = new Schema({
   , state: {                // 状态：0 - 草稿；1 - 待审核； 2 - 审核通过； 3 - 审核未通过
       type: Number,
       default: 0 
-    }         
+    }
   , meta:{
       createAt:{
         type:Date,
