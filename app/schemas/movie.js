@@ -53,6 +53,7 @@ var MovieSchema = new Schema({
   , poster: String          // 海报图片地址
   , imgs: String            // 影片截图
   , trailer: String         // 预告片地址
+  , download: String        // 下载地址
   , state: {                // 状态：0 - 草稿；1 - 待审核； 2 - 审核通过； 3 - 审核未通过
       type: Number,
       default: 0 

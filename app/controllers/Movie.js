@@ -170,25 +170,37 @@ exports.new = function(req, res) {
   })
 };
 
-// 保存抓取的影片数据
+// 解析movieObj，保存到影片数据库
 // 1. 查找是否已经存在相同名称、相同导演的影片，如存在则做更新处理
-// 2. 查找影片类型是否都已经存在，不存在的要创建类型
+// 2. 否则查找影片类型是否都已经存在，不存在的要创建类型
 // 3. new Movie, 保存，保存影片时，需要更新类型中的引用。
 exports.saveMovie = function (movieObj){
   console.log('保存影片数据：');
 
-  var _asyncArray = [];
-  movieObj.category.forEach( function (name) {
-    _asyncArray.push(getCategoryIdAsync(name));
+  Movie.findByName(movieObj.name, function(err, movie){
+    if (err) {
+      console.log(err);
+      return;
+    }
+
+    if (movie) {
+      console.log('影片已存在：' + movie.name);
+    } else {
+      var getCates = [];
+      movieObj.category.forEach( function (name) {
+        getCates.push(getCategoryIdAsync(name));
+      })
+      
+      Promise.all(getCates)
+        .then( (res) => {
+          movieObj.category = res;
+          newMovie(movieObj);
+        })
+    }
   })
-  
-  Promise.all(_asyncArray)
-    .then( res => {
-      console.log(res);
-      movieObj.category = res;
-      newMovie(movieObj);
-    })
 };
+
+
 
 function getCategoryIdAsync (name){
   return new Promise( function (resolve, reject) {
@@ -226,10 +238,25 @@ function newMovie ( movieObj, cb ) {
       return;
     }
 
-    movieObj.category.forEach(function (categoryId){
-      saveCategory(movie._id, categoryId);
+    movie.category.forEach(function (categoryId){
+      // saveCategory(movie._id, categoryId);
+       Category.findById(categoryId, function(err, category){
+        if (err) {
+          console.log(err);
+          return;
+        }
+        if (category) {
+          category.movies.push(movie._id);
+          category.save(function(err, category){
+            if (err) {
+              console.log(err);
+              return;
+            }
+          });
+        }
+      });
     });
-    if (cb) cb();
+    // if (cb) cb();
   });
   return movie;
 };

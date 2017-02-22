@@ -13,7 +13,7 @@ var Movie = require('./Movie');
 var i = 0;
 var baseUrl = 'http://www.dy2018.com';
 var exUrl = '.html';
-var maxNum = 1;
+var maxNum = 5;
 var imgPath = '/images'
 
 var movies = [];
@@ -26,38 +26,44 @@ var movies = [];
 // 获取取网页内容
 exports.fetchPage = (req, res) => {
      getPageAsync ( 'http://www.dy2018.com/html/gndy/dyzz/index.html')
-        .then ( parseList )
-        
+        .then ( parseList, function (err){
+            console.log('抓取网页时出错：\n' + err);
+        } )
 
-
-// 解析列表, 并依次抓取影片数据
-function parseList ( html ) {
-    return new Promise( function (resolve, reject) {
-        console.log('开始解析列表');
-        var $ = decodeHtml(html);
-        var _id = '';
-        var i = 0;
-        $('.co_content8 a').each( function (){
-            if ( i >= maxNum ) return false;
-            i++;
-            _id = $(this).attr('href');
-            if ( '/i/' === _id.substr(0,3) ){
-                getPageAsync (parseUrl (_id))
-                    .then ( filterMovie )
-                    .then ( saveMovie )
-                    .then ( showMovie )
-                    
+    // 解析列表, 并依次抓取影片数据
+    function parseList ( html ) {
+        return new Promise( function (resolve, reject) {
+            console.log('开始解析列表');
+            var $ = decodeHtml(html);
+            if ($.text().indexOf('window.location') === 0){
+                console.log($.text());
             }
+            var _id = '';
+            var i = 0;
+            $('.co_content8 a').each( function (){
+                if ( i >= maxNum ) return false;
+                i++;
+                _id = $(this).attr('href');
+                if ( '/i/' === _id.substr(0,3) ){
+                    getPageAsync (parseUrl (_id))
+                        .then ( filterMovie )
+                        .then ( saveMovie )
+                        .then ( showMovie )
+                }
+            });
         });
-    });
-};
+    };
 
 
-// 解析电影详情网页内容
+
+
+// 解析电影详情网页内容，返回一个JSON
 function filterMovie ( html ) {
     console.log('开始解析影片详情页面')
-    var title, name = '', oldName, year, country, language, type, subtitle, imdb, douban, format, videoSize, fileSize, videoLength, director, starring, intro, poster, imgs;
+    var title, name = '', oldName, year, country, language, type, subtitle, imdb, douban, 
+        format, videoSize, fileSize, videoLength, director, starring, intro, poster, imgs, download;
     var starring = [], awards = [], catetorys = [];
+    var movie = {};
 
     var $ = decodeHtml(html);
     
@@ -127,8 +133,8 @@ function filterMovie ( html ) {
                  }
              })
          }
-         if ( _t = _txt.split('◎简　　介')[1] ) {
-            intro = _t.trim();
+         if ( _txt.indexOf('◎简　　介') >= 0 ) {
+            intro = $(this).text();
          }
          if ( _t = _txt.split('◎获奖情况')[1] ) {
             awards.push( _t.trim() );
@@ -143,9 +149,9 @@ function filterMovie ( html ) {
          }
      })
 
-    var download = $('#Zoom a').attr('href');
+    download = $('#Zoom a').attr('href');
     
-    var movie = {
+    movie = {
           title: title 
         , name: name 
         , oldName: oldName 
@@ -166,25 +172,19 @@ function filterMovie ( html ) {
         , intro: intro      
         , award: awards   
         , poster: poster   
-        , imgs: imgs   
+        , imgs: imgs
+        , download: download
         // , trailer: trailer  
-        // , state: {        
-        //     type: Number,
-        //     default: 0 
-        // }
-        // , meta:{
-        //     createAt:{
-        //         type:Date,
-        //         default:Date.now()
-        //     }
-        //     , updateAt:{
-        //         type:Date,
-        //         default:Date.now()
-        //     }
-        // }
     };
-    return movie;
-};
+    
+    // return JSON.stringify(movie);
+    return (movie);
+}
+
+function saveMovie (movie) {
+    // TODO:调用 Movie.save 保存影片到数据库中，保存图片到本地服务器
+    Movie.saveMovie(movie);
+}
 
 function showMovie( movie ){
     // movies.push(movie);
@@ -213,32 +213,37 @@ function saveImage ( url, name ) {
     });
 };
 
-function saveMovie (movie) {
-    // TODO:调用 Movie.save 保存影片到数据库中，保存图片到本地服务器
-    Movie.saveMovie(movie);
-}
 
 // 抓取指定 url 网页内容，并返回 Promise 实例
 function getPageAsync ( url ) {
     return new Promise( function (resolve, reject) {
         console.log('开始抓取网址：' + url);
         if ( undefined === url) reject();
-        http.get(url, function (res) {
+
+        var req = request(url, {timeout: 10000, pool: false});
+        req.setMaxListeners(50);
+        // req.setHeader('user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36')
+        //     .setHeader('accept', 'text/html,application/xhtml+xml');
+
+        req.on('error', function(err) {
+            console.log('抓取失败！' + url);
+            console.log(err);
+            reject(e);
+        });
+        req.on('response', function(res) {
             var bufferHelper = new BufferHelper();
-            res
-                .on('data', function (chunk){
-                    bufferHelper.concat(chunk);
-                })
-                .on('end', function (){
-                    resolve(bufferHelper.toBuffer());
-                    console.log('抓取成功！');
-                })
-                .on('error', function(e){
-                    console.log('抓取失败！' + url);
-                    reject(e);
-                });
+            res.on('data', function (chunk) {
+                bufferHelper.concat(chunk);
+            });
+        res.on('end',function(){
+            var result = iconv.decode(bufferHelper.toBuffer(),'gb2312');
+            resolve(bufferHelper.toBuffer());
+            console.log('抓取成功！');
+            console.log(result);
+        });
         });
     });
+
 };
 
 // 打印影片数据
