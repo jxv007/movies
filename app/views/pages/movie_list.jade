@@ -18,13 +18,12 @@ block content
             th 状态
             th 上映时间
             th 录入时间
-            th 查看
             th 更新
             th 删除
         tbody
           each item in movies
             tr(class = 'item-id-' + item._id)
-              td #{item.title}
+              td: a(target="_blank", href="../movie/"+item._id) #{item.title}
               if (item.category)
                 td
                   each cat in item.category
@@ -36,7 +35,6 @@ block content
               td #{item.year}
               td #{moment(item.meta,updateAt).format('MM/DD/YYYY')}
               //-td #{item.meta.updateAt}
-              td: a(target="_blank", href="../movie/"+item._id) 查看
               td: a(target="_blank", href="/admin/movie/update/"+item._id) 修改
               td
                 button.delMovie.btn.btn-danger(type = "button", data-id = "#{item._id}") 删除

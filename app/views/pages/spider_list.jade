@@ -42,4 +42,13 @@ block content
               td
                 button.delMovie.btn.btn-danger(type = "button", data-id = "#{item._id}") 删除
                 button.saveMovie.btn.btn-warning(type = "button", data-id = "#{item._id}") 保存
+    ul.pagination
+      - for (var i = 1; i <= totalPage; i++)
+        - if ( currentPage === i) {
+           li.active
+            span #{currentPage}
+        - } else {
+            li
+              a(href='/admin/spider/list?p=#{i}&r=3') #{i}
+        - }
   script(src="/js/admin.js")

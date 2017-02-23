@@ -7,6 +7,9 @@ var BufferHelper = require('bufferhelper');
 var Promise = require('bluebird');
 var movieController = require('./Movie');
 var Movie = require('../models/movie.js');
+var charset = require('superagent-charset');
+var superagent = charset(require('superagent'));
+
 // var mongoose = require('mongoose');
 // var Schema = mongoose.Schema;
 // var ObjectId = Schema.Types.ObjectId;
@@ -46,6 +49,7 @@ exports.fetchPage = (req, res) => {
                 var vm = require('vm');
                 vm.runInThisContext(s);
                 console.log(baseUrl + global.newUrl);
+                
                 // getPageAsync ( baseUrl + global.newUrl )
                 //     .then ( parseList, function (err){
                 //         console.log('抓取网页时出错：\n' + err);
@@ -234,32 +238,47 @@ function getPageAsync ( url ) {
         console.log('开始抓取网址：' + url);
         if ( !url ) reject();
 
-        var req = request({
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36',
-                Referer: "http://www.dy2018.com/html/gndy/dyzz/index.html?__wangan=3eb6560c90791a938cb2dfb49819052c61487828362_473387"
-            },
-            timeout: 30000,
-            url: url
-        });
+        superagent
+            .get( url )
+            .charset('gb2312')
+            .on('error', err => {
+                console.log('抓取失败！' + url);
+                console.log(err);
+                reject(e)
+            })
+            .end((err, res) => {
+                resolve(res.text);
+                console.log('抓取成功！');
+            })
 
-        req.on('error', function(err) {
-            console.log('抓取失败！' + url);
-            console.log(err);
-            reject(e);
-        });
-        req.on('response', function(res) {
-            var bufferHelper = new BufferHelper();
-            res.on('data', function (chunk) {
-                bufferHelper.concat(chunk);
-            });
-        res.on('end',function(){
-            var result = bufferHelper.toBuffer();
-            resolve(result);
-            console.log('抓取成功！');
-            console.log(iconv.decode(result, 'gb2312'));
-        });
-        });
+
+
+        // var req = request({
+        //     headers: {
+        //         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36',
+        //         Referer: "http://www.dy2018.com/html/gndy/dyzz/index.html?__wangan=3eb6560c90791a938cb2dfb49819052c61487828362_473387"
+        //     },
+        //     timeout: 30000,
+        //     url: url
+        // });
+
+        // req.on('error', function(err) {
+        //     console.log('抓取失败！' + url);
+        //     console.log(err);
+        //     reject(e);
+        // });
+        // req.on('response', function(res) {
+        //     var bufferHelper = new BufferHelper();
+        //     res.on('data', function (chunk) {
+        //         bufferHelper.concat(chunk);
+        //     });
+        //     res.on('end',function(){
+        //         var result = bufferHelper.toBuffer();
+        //         resolve(result);
+        //         console.log('抓取成功！');
+        //         console.log(iconv.decode(result, 'gb2312'));
+        //     });
+        // });
     });
 
 };
@@ -273,7 +292,8 @@ function printData (movie) {
 
 // 将网页转为 UTF-8，并返回 cheerio 解析解析的 DOM
 function decodeHtml ( html, charset = 'gb2312' ) {
-    return (cheerio.load( iconv.decode(html, charset)));
+    // return (cheerio.load( iconv.decode(html, charset)));
+    return (cheerio.load( html));
 };
 
 // 转换url
@@ -284,14 +304,25 @@ function parseUrl (id) {
 };
 
 exports.list = function(req, res){
+    var rows = parseInt(req.query.r, 10) || 3;
+    var page = parseInt(req.query.p, 10) || 1;
+
   Movie
     .where('state').gte(0)
-    .populate('category')
+    // .skip((page - 1) * rows)
+    // .limit(rows)
+    // .populate('category')
     .exec((err, movies) => {
       if (err) handleError(err);
+      console.log(movies.length);
+      var results = movies.slice((page - 1) * rows, page * rows )
+
       res.render('spider_list', {
-        title: "抓取结果列表",
-        movies: movies
+          title: "抓取结果列表"
+        , movies: results
+        , currentPage: page
+        , totalPage: movies.length
+
       })
     })
 };
