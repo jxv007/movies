@@ -22,6 +22,21 @@ exports.update = (req, res) => {
   }
 }
 
+exports.saveState = (req, res) => {
+  var id = req.query.id;
+  console.log('state.....' + id);
+  // var movieObj = req.body.movie;
+  if (id) {
+    Movie.findById(id, (err, movie) => {
+      movie.state = 1;
+      console.log(movie.state);
+        movie.save((err, movie)=>{
+          res.json({ success: 1 });
+        })
+    })
+  }
+}
+
 // admin post movie
 exports.save = (req, res) => {
   var id = req.body.movie._id;
@@ -102,16 +117,13 @@ exports.save = (req, res) => {
   }
 }
 
-
-
 // list page
 exports.list = function(req, res) {
   Movie
-    .find()
+    .where('state').gte(0)
     .populate('category')
     .exec((err, movies) => {
       if (err) handleError(err);
-      console.log(movies);
       res.render('movie_list', {
         title: "imooc 列表页",
         movies: movies
@@ -177,7 +189,7 @@ exports.new = function(req, res) {
 exports.saveMovie = function (movieObj){
   console.log('保存影片数据：');
 
-  Movie.findByName(movieObj.name, function(err, movie){
+  Movie.findOne({name:movieObj.name}, function(err, movie){
     if (err) {
       console.log(err);
       return;

@@ -5,7 +5,8 @@ var request = require('request');
 var iconv = require('iconv-lite');
 var BufferHelper = require('bufferhelper');
 var Promise = require('bluebird');
-var Movie = require('./Movie');
+var movieController = require('./Movie');
+var Movie = require('../models/movie.js');
 // var mongoose = require('mongoose');
 // var Schema = mongoose.Schema;
 // var ObjectId = Schema.Types.ObjectId;
@@ -13,7 +14,7 @@ var Movie = require('./Movie');
 var i = 0;
 var baseUrl = 'http://www.dy2018.com';
 var exUrl = '.html';
-var maxNum = 5;
+var maxNum = 20;
 var imgPath = '/images'
 
 var movies = [];
@@ -26,17 +27,30 @@ var movies = [];
 // 获取取网页内容
 exports.fetchPage = (req, res) => {
      getPageAsync ( 'http://www.dy2018.com/html/gndy/dyzz/index.html')
-        .then ( parseList, function (err){
+        .then ( parseList, (err) => {
             console.log('抓取网页时出错：\n' + err);
         } )
+        .then(function(){
+            console.log('完成抓取');
+        })
 
     // 解析列表, 并依次抓取影片数据
     function parseList ( html ) {
         return new Promise( function (resolve, reject) {
             console.log('开始解析列表');
             var $ = decodeHtml(html);
-            if ($.text().indexOf('window.location') === 0){
-                console.log($.text());
+            if ($.text().indexOf('window.location=') >= 0){
+                console.log('需要跳转', $.text());
+                var s = $.text().replace('window.location=', 'global.newUrl=');
+
+                var vm = require('vm');
+                vm.runInThisContext(s);
+                console.log(baseUrl + global.newUrl);
+                // getPageAsync ( baseUrl + global.newUrl )
+                //     .then ( parseList, function (err){
+                //         console.log('抓取网页时出错：\n' + err);
+                //     } )
+
             }
             var _id = '';
             var i = 0;
@@ -66,7 +80,7 @@ function filterMovie ( html ) {
     var movie = {};
 
     var $ = decodeHtml(html);
-    
+    console.log($.text());
     title = $('.title_all h1').text().trim();
     $('.co_content8 .position a').each(function (){
         catetorys.push($(this).text());
@@ -183,12 +197,12 @@ function filterMovie ( html ) {
 
 function saveMovie (movie) {
     // TODO:调用 Movie.save 保存影片到数据库中，保存图片到本地服务器
-    Movie.saveMovie(movie);
+    if (movie)  movieController.saveMovie(movie);
 }
 
 function showMovie( movie ){
     // movies.push(movie);
-    // res.redirect('/admin/spider/list');
+    res.redirect('/admin/spider/list');
 }
 
 function saveImage ( url, name ) {
@@ -218,12 +232,16 @@ function saveImage ( url, name ) {
 function getPageAsync ( url ) {
     return new Promise( function (resolve, reject) {
         console.log('开始抓取网址：' + url);
-        if ( undefined === url) reject();
+        if ( !url ) reject();
 
-        var req = request(url, {timeout: 10000, pool: false});
-        req.setMaxListeners(50);
-        // req.setHeader('user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36')
-        //     .setHeader('accept', 'text/html,application/xhtml+xml');
+        var req = request({
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36',
+                Referer: "http://www.dy2018.com/html/gndy/dyzz/index.html?__wangan=3eb6560c90791a938cb2dfb49819052c61487828362_473387"
+            },
+            timeout: 30000,
+            url: url
+        });
 
         req.on('error', function(err) {
             console.log('抓取失败！' + url);
@@ -236,10 +254,10 @@ function getPageAsync ( url ) {
                 bufferHelper.concat(chunk);
             });
         res.on('end',function(){
-            var result = iconv.decode(bufferHelper.toBuffer(),'gb2312');
-            resolve(bufferHelper.toBuffer());
+            var result = bufferHelper.toBuffer();
+            resolve(result);
             console.log('抓取成功！');
-            console.log(result);
+            console.log(iconv.decode(result, 'gb2312'));
         });
         });
     });
@@ -255,9 +273,7 @@ function printData (movie) {
 
 // 将网页转为 UTF-8，并返回 cheerio 解析解析的 DOM
 function decodeHtml ( html, charset = 'gb2312' ) {
-    var _html = iconv.decode(html, charset);
-    // console.log (_html);
-    return (cheerio.load( _html ));
+    return (cheerio.load( iconv.decode(html, charset)));
 };
 
 // 转换url
@@ -268,9 +284,15 @@ function parseUrl (id) {
 };
 
 exports.list = function(req, res){
-    res.render('spider_list', {
-        title: '抓取结果列表',
+  Movie
+    .where('state').gte(0)
+    .populate('category')
+    .exec((err, movies) => {
+      if (err) handleError(err);
+      res.render('spider_list', {
+        title: "抓取结果列表",
         movies: movies
+      })
     })
 };
 

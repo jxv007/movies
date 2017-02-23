@@ -15,7 +15,7 @@ block content
             th 电影名字
             th 电影类别
             th 导演
-            th 国家
+            th 状态
             th 上映时间
             th 录入时间
             th 查看
@@ -26,11 +26,13 @@ block content
             tr(class = 'item-id-' + item._id)
               td #{item.title}
               if (item.category)
-                td #{item.category}
+                td
+                  each cat in item.category
+                    #{cat.name} 
               else
                 td
               td #{item.director}
-              td #{item.country}
+              td #{item.state}
               td #{item.year}
               td #{moment(item.meta,updateAt).format('MM/DD/YYYY')}
               //-td #{item.meta.updateAt}

@@ -11,9 +11,9 @@ block content
         thead
           tr
             th 电影名字
-            //- th 电影类别
+            th 电影类别
             th 导演
-            th 国家
+            th 状态
             th 上映时间
             th 录入时间
             th 查看
@@ -21,16 +21,25 @@ block content
             th 删除
         tbody
           each item in movies
-            tr(class="item-id-"+item._id)
-              td #{item.name}
-              //- td #{item.category.name}
+            tr(class = 'item-id-' + item._id)
+              td #{item.title}
+              td
+                if (item.category)
+                  each cat in item.category
+                    #{cat.name}
+                else
               td #{item.director}
-              td #{item.country}
+              td
+                if (item.state == 0)
+                  草稿
+                else if (item.state == 1)
+                  已发布
               td #{item.year}
               td #{moment(item.meta,updateAt).format('MM/DD/YYYY')}
               //-td #{item.meta.updateAt}
               td: a(target="_blank", href="../movie/"+item._id) 查看
               td: a(target="_blank", href="/admin/movie/update/"+item._id) 修改
               td
-                button.btn.btn-danger.del(type="button",data-id="#{item._id}") 删除
-  script(src="/js/admin.js")     
+                button.delMovie.btn.btn-danger(type = "button", data-id = "#{item._id}") 删除
+                button.saveMovie.btn.btn-warning(type = "button", data-id = "#{item._id}") 保存
+  script(src="/js/admin.js")
