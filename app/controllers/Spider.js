@@ -15,7 +15,6 @@ var superagent = charset(require('superagent'));
 // var ObjectId = Schema.Types.ObjectId;
 
 var i = 0;
-var baseUrl = 'http://www.dy2018.com';
 var exUrl = '.html';
 var maxNum = 20;
 var imgPath = '/images'
@@ -29,9 +28,25 @@ var movies = [];
 
 // 获取取网页内容
 exports.fetchPage = (req, res) => {
-     getPageAsync ( 'http://www.dy2018.com/html/gndy/dyzz/index.html')
+    var baseUrl = req.body.spider.baseUrl ||'http://www.dy2018.com';
+    var startUrl = req.body.spider.url || 'http://www.dy2018.com/html/gndy/dyzz/index.html';
+    var listStartTag = req.body.spider.listStart || '.co_content8 a';
+    var listTag = req.body.spider.listTag || '/i/';
+    var titleTag = req.body.spider.title || '.title_all h1';
+    var maxNumber = req.body.spider.maxNumber || 10;
+
+     getPageAsync ( startUrl )
         .then ( parseList, (err) => {
             console.log('抓取网页时出错：\n' + err);
+            res.render('spider', {
+                title: '爬虫出错'
+                , spider: {
+                    url: startUrl
+                    , list: listStartTag
+                    , title: titleTag
+                    , maxNumber: maxNumber
+                }
+            })
         } )
         .then(function(){
             console.log('完成抓取');
@@ -49,20 +64,16 @@ exports.fetchPage = (req, res) => {
                 var vm = require('vm');
                 vm.runInThisContext(s);
                 console.log(baseUrl + global.newUrl);
-                
-                // getPageAsync ( baseUrl + global.newUrl )
-                //     .then ( parseList, function (err){
-                //         console.log('抓取网页时出错：\n' + err);
-                //     } )
 
             }
             var _id = '';
             var i = 0;
-            $('.co_content8 a').each( function (){
-                if ( i >= maxNum ) return false;
+            $( listStartTag ).each( function (){
+                console.log($(this).attr('href'))
+                if ( i >= maxNumber ) return false;
                 i++;
                 _id = $(this).attr('href');
-                if ( '/i/' === _id.substr(0,3) ){
+                if ( listTag === _id.substr(0,listTag.length) ){
                     getPageAsync (parseUrl (_id))
                         .then ( filterMovie )
                         .then ( saveMovie )
@@ -85,7 +96,7 @@ function filterMovie ( html ) {
 
     var $ = decodeHtml(html);
     console.log($.text());
-    title = $('.title_all h1').text().trim();
+    title = $(titleTag).text().trim();
     $('.co_content8 .position a').each(function (){
         catetorys.push($(this).text());
     });
@@ -244,9 +255,40 @@ function getPageAsync ( url ) {
             .on('error', err => {
                 console.log('抓取失败！' + url);
                 console.log(err);
-                reject(e)
+                reject(err)
             })
             .end((err, res) => {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+
+                var $ = decodeHtml(res.text);
+                if ($.text().indexOf('window.location=') >= 0){
+                    console.log('需要跳转', $.text());
+                    var s = $.text().replace('window.location=', 'global.newUrl=');
+
+                    var vm = require('vm');
+                    vm.runInThisContext(s);
+                    console.log(baseUrl + global.newUrl);
+                    getPageAsync ( startUrl )
+                        .then ( parseList, (err) => {
+                            console.log('抓取网页时出错：\n' + err);
+                            res.render('spider', {
+                                title: '爬虫出错'
+                                , spider: {
+                                    url: startUrl
+                                    , list: listStartTag
+                                    , title: titleTag
+                                    , maxNumber: maxNumber
+                                }
+                            })
+                        } )
+                        .then(function(){
+                            console.log('完成抓取');
+                        })
+                }
+
                 resolve(res.text);
                 console.log('抓取成功！');
             })
@@ -329,3 +371,8 @@ function handleError (err) {
     console.log(err);
 }
 
+exports.new = function(req, res) {
+    res.render('spider', {
+        title: '爬虫设置页'
+    })
+}

@@ -7,39 +7,51 @@ block content
         .form-group
           label.col-sm-3.control-label(for = "inputUrl") 要抓取的影片网址
           .col-sm-7
-            input#inputUrl.form-control(type = "text", name="url", value = '')
-        //- .form-group
-        //-   label.col-sm-3.control-label(for = "inputTitle") 电影名字
-        //-   .col-sm-7
-        //-     input#inputTitle.form-control(type = "text", name="movie[title]", value=movie.title)
-        //- .form-group
-        //-   label.col-sm-3.control-label(for = "inputDirector") 导演
-        //-   .col-sm-7
-        //-     input#inputDirector.form-control(type="text",name="movie[director]", value=movie.director)
+            input#inputUrl.form-control(type = "text", name="spider[url]", value = '')
+        .form-group
+          label.col-sm-3.control-label(for = "inputList") 基础地址
+          .col-sm-7
+            input#inputList.form-control(type="text",name="spider[baseUrl]", value='')
+        .form-group
+          label.col-sm-3.control-label(for = "inputList") 列表容器标志
+          .col-sm-7
+            input#inputList.form-control(type="text",name="spider[listStart]", value='')
+        .form-group
+          label.col-sm-3.control-label(for = "inputList") 列表项标志
+          .col-sm-7
+            input#inputList.form-control(type="text",name="spider[listTag]", value='')            
+        .form-group
+          label.col-sm-3.control-label(for = "inputNumber") 抓取数量
+          .col-sm-7
+            input#inputNumber.form-control(type="text",name="spider[maxNumber]", value='')
+        .form-group
+          label.col-sm-3.control-label(for = "inputTitle") 电影名字
+          .col-sm-7
+            input#inputTitle.form-control(type = "text", name="spider[title]", value='')
         //- .form-group
         //-   label.col-sm-3.control-label(for="inputCountry") 国家
         //-   .col-sm-7
-        //-     input#inputCountry.form-control(type="text",name="movie[country]", value=movie.country)
+        //-     input#inputCountry.form-control(type="text",name="spider[country]", value=spider.country)
         //- .form-group.0
         //-   label.col-sm-3.control-label(for="inputLanguage") 语言
         //-   .col-sm-7
-        //-     input#inputLanguage.form-control(type="text",name="movie[language]", value=movie.language)
+        //-     input#inputLanguage.form-control(type="text",name="spider[language]", value=spider.language)
         //- .form-group
         //-   label.col-sm-3.control-label(for="inputPoster") 海报地址
         //-   .col-sm-7
-        //-     input#inputPoster.form-control(type="text",name="movie[poster]", value=movie.poster)
+        //-     input#inputPoster.form-control(type="text",name="spider[poster]", value=spider.poster)
         //- .form-group
         //-   label.col-sm-3.control-label(for="inputFlash") 片源地址
         //-   .col-sm-7
-        //-     input#inputFlash.form-control(type="text",name="movie[flash]", value=movie.flash)
+        //-     input#inputFlash.form-control(type="text",name="spider[flash]", value=spider.flash)
         //- .form-group
         //-   label.col-sm-3.control-label(for="inputYear") 上映年份
         //-   .col-sm-7
-        //-     input#inputYear.form-control(type="text",name="movie[year]", value=movie.year)
+        //-     input#inputYear.form-control(type="text",name="spider[year]", value=spider.year)
         //- .form-group
         //-   label.col-sm-3.control-label(for="inputDescription") 电影简介
         //-   .col-sm-7
-        //-     input#inputDescription.form-control(type="text",name="movie[description]", value=movie.description)
+        //-     input#inputDescription.form-control(type="text",name="spider[description]", value=spider.description)
         .form-group
           .col-sm-offset-2.col-sm-10
             button.btn.btn-danger(type="submit") 开始抓取

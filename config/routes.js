@@ -7,9 +7,6 @@ var Admin = require('../app/controllers/Admin.js');
 var Spider = require('../app/controllers/Spider.js');
 
 module.exports = function(app){
-
-
-
   //pre handle
   app.use((req, res, next) => {
     app.locals.user = req.session.user;
@@ -50,9 +47,9 @@ module.exports = function(app){
   app.delete('/admin/category/list', Category.del);
 
   //Spider
-  // app.get('/admin/spider/new', Spider.new);
-  app.get('/admin/spider/fetchPage', Spider.fetchPage);
-  app.get('/admin/spider/list', Spider.list);
+  app.post('/admin/spider/fetchPage', User.signinRequired, User.adminRequired, Spider.fetchPage);
+  app.get('/admin/spider/list', User.signinRequired, User.adminRequired, Spider.list);
+  app.get('/admin/spider', User.signinRequired, User.adminRequired, Spider.new);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
