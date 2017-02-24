@@ -23,7 +23,7 @@ module.exports = function(app){
   app.get('/admin',Admin.index);
 
   //Movie
-  app.get('/admin/movie',User.signinRequired,User.adminRequired, Movie.list);
+  app.get('/admin/movie/list',User.signinRequired,User.adminRequired, Movie.list);
   app.get('/admin/movie/update/:id',User.signinRequired,User.adminRequired, Movie.update);
   app.delete('/admin/movie/list', Movie.del);
   app.get('/admin/movie/new', User.signinRequired, User.adminRequired, Movie.new);

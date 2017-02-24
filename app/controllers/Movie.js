@@ -119,16 +119,25 @@ exports.save = (req, res) => {
 
 // list page
 exports.list = function(req, res) {
-  Movie
-    .where('state').gte(0)
-    .populate('category')
-    .exec((err, movies) => {
-      if (err) handleError(err);
-      res.render('movie_list', {
-        title: "imooc 列表页",
-        movies: movies
-      })
-    })
+    var rows = parseInt(req.query.r, 10) || 10;
+    var page = parseInt(req.query.p, 10) || 1;
+
+    Movie
+        .where('state').gte(0)
+        .populate('category')
+        .exec((err, movies) => {
+            if (err) handleError(err);
+            
+            var results = movies.slice((page - 1) * rows, page * rows );
+            res.render('movie_list', {
+                title: "影片列表"
+                , movies: results
+                , currentPage: page
+                , totalPage: Math.ceil( movies.length / rows)
+                , rows: rows
+            })
+        })
+
 }
 
 //list delete movie

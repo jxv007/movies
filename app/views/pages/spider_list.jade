@@ -49,6 +49,6 @@ block content
             span #{currentPage}
         - } else {
             li
-              a(href='/admin/spider/list?p=#{i}&r=3') #{i}
+              a(href='/admin/spider/list?p=#{i}&r=#{rows}') #{i}
         - }
   script(src="/js/admin.js")

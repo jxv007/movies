@@ -12,14 +12,13 @@ block content
       table.table.table-hover.table-bordered
         thead
           tr
-            th 电影名字
-            th 电影类别
-            th 导演
-            th 状态
-            th 上映时间
-            th 录入时间
-            th 更新
-            th 删除
+            th.col-md-3 电影名字
+            th.col-md-1 电影类别
+            th.col-md-2 导演
+            th.col-md-1 状态
+            th.col-md-1 上映时间
+            th.col-md-1 录入时间
+            th.col-md-2 操作
         tbody
           each item in movies
             tr(class = 'item-id-' + item._id)
@@ -31,11 +30,24 @@ block content
               else
                 td
               td #{item.director}
-              td #{item.state}
+              td
+                if (item.state == 0)
+                  草稿
+                else if (item.state == 1)
+                  已发布              
               td #{item.year}
               td #{moment(item.meta,updateAt).format('MM/DD/YYYY')}
               //-td #{item.meta.updateAt}
-              td: a(target="_blank", href="/admin/movie/update/"+item._id) 修改
               td
+                a.btn.btn-primary(target="_blank", href="/admin/movie/update/"+item._id) 修改
                 button.delMovie.btn.btn-danger(type = "button", data-id = "#{item._id}") 删除
+    ul.pagination
+      - for (var i = 1; i <= totalPage; i++)
+        - if ( currentPage === i) {
+           li.active
+            span #{currentPage}
+        - } else {
+            li
+              a(href='/admin/movie/list?p=#{i}&r=#{rows}') #{i}
+        - }
   script(src="/js/admin.js")     

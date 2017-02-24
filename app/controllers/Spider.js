@@ -303,27 +303,29 @@ function parseUrl (id) {
 
 };
 
+// 显示新抓取的内容
 exports.list = function(req, res){
-    var rows = parseInt(req.query.r, 10) || 3;
+    var rows = parseInt(req.query.r, 10) || 10;
     var page = parseInt(req.query.p, 10) || 1;
 
-  Movie
-    .where('state').gte(0)
-    // .skip((page - 1) * rows)
-    // .limit(rows)
-    // .populate('category')
-    .exec((err, movies) => {
-      if (err) handleError(err);
-      console.log(movies.length);
-      var results = movies.slice((page - 1) * rows, page * rows )
+    Movie
+        .where('state').gte(0)
+        .populate('category')
+        .exec((err, movies) => {
+            if (err) handleError(err);
+            
+            var results = movies.slice((page - 1) * rows, page * rows );
+            res.render('spider_list', {
+                title: "抓取结果列表"
+                , movies: results
+                , currentPage: page
+                , totalPage: Math.ceil( movies.length / rows)
+                , rows: rows
+            })
+        })
+}
 
-      res.render('spider_list', {
-          title: "抓取结果列表"
-        , movies: results
-        , currentPage: page
-        , totalPage: movies.length
-
-      })
-    })
-};
+function handleError (err) {
+    console.log(err);
+}
 
