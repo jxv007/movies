@@ -10,20 +10,21 @@ block content
       table.table.table-hover.table-bordered
         thead
           tr
-            th 类别名称
-            th ID
+            th.col-md-1 类别名称
             th 影片
-            th 录入时间
-            th 更新
-            th 删除
+            th.col-md-1 影片数量
+            th.col-md-1 录入时间
+            th.col-md-2 删除
         tbody
           each item in categories
             tr(class = "item-id-" + item._id)
               td #{item.name}
-              td #{item._id}
-              td #{item.movies}
-              td #{moment(item.meta,updateAt).format('MM/DD/YYYY')}
-              td: a(target="_blank", href="../admin/update/"+item._id) 修改
               td
+                each movie in item.movies
+                  #{movie.name}</br>
+              td #{item.movies.length}
+              td #{moment(item.meta,updateAt).format('MM/DD/YYYY')}
+              td
+                a.btn.btn-primary(target="_blank", href="../admin/update/"+item._id) 修改
                 button.delCategory.btn.btn-danger.del(type="button", data-id = "#{item._id}") 删除
   script(src="/js/admin.js")

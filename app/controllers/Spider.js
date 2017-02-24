@@ -309,7 +309,7 @@ exports.list = function(req, res){
     var page = parseInt(req.query.p, 10) || 1;
 
     Movie
-        .where('state').gte(0)
+        .find({'state': 0})
         .populate('category')
         .exec((err, movies) => {
             if (err) handleError(err);

@@ -1,22 +1,26 @@
+nav.navbar.nabbar-default.navbar-fixed-top(role='navigation')
+  .container-fluid
+    .navbar-header
+      a.navbar-brand(href="/") IVR 影院
+    div
+      ul.nav.navbar-nav
+        li.active
+          a(href = '#')热门电影
+      p.navbar-text.navbar-right
+        if user
+          span 欢迎你 #{user.username} | 
+          if (10<user.role)
+              a.navbar-link(href="/admin") 后台管理 |
+          a.navbar-link(href="/logout") 退出
+        else
+          a.navbar-link(href="#",data-toggle="modal",data-target="#signupModal") 注册
+          span |
+          a.navbar-link(href="#",data-toggle="modal",data-target="#signinModal") 登录
 .container
   .row
     .page-header
       h1= title
       small 重度科幻迷
-.navbar.nabbar-default.navbar-fixed-top
-  .container
-    .navbar-header
-      a.navbar-brand(href="/") IVR 影院
-    p.navbar-text.navbar-right
-      if user
-        span 欢迎你 #{user.username} | 
-        if (10<user.role)
-            a.navbar-link(href="/admin") 后台管理 |
-        a.navbar-link(href="/logout") 退出
-      else
-        a.navbar-link(href="#",data-toggle="modal",data-target="#signupModal") 注册
-        span |
-        a.navbar-link(href="#",data-toggle="modal",data-target="#signinModal") 登录
 
 #signupModal.modal.fade
   .modal-dialog

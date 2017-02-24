@@ -10,19 +10,17 @@ block content
       table.table.table-hover.table-bordered
         thead
           tr
-            th 电影名字
-            th 电影类别
-            th 导演
-            th 状态
-            th 上映时间
-            th 录入时间
-            th 查看
-            th 更新
-            th 删除
+            th.col-md-3 电影名字
+            th.col-md-1 电影类别
+            th.col-md-2 导演
+            th.col-md-1 状态
+            th.col-md-1 上映时间
+            th.col-md-1 录入时间
+            th.col-md-2 操作
         tbody
           each item in movies
             tr(class = 'item-id-' + item._id)
-              td #{item.title}
+              td: a(target="_blank", href="../movie/"+item._id) #{item.title}
               td
                 if (item.category)
                   each cat in item.category
@@ -35,13 +33,11 @@ block content
                 else if (item.state == 1)
                   已发布
               td #{item.year}
-              td #{moment(item.meta,updateAt).format('MM/DD/YYYY')}
-              //-td #{item.meta.updateAt}
-              td: a(target="_blank", href="../movie/"+item._id) 查看
-              td: a(target="_blank", href="/admin/movie/update/"+item._id) 修改
+              td #{moment(item.meta, updateAt).format('MM/DD/YYYY')}
               td
-                button.delMovie.btn.btn-danger(type = "button", data-id = "#{item._id}") 删除
+                a.btn.btn-primary(target="_blank", href="/admin/movie/update/"+item._id) 修改
                 button.saveMovie.btn.btn-warning(type = "button", data-id = "#{item._id}") 保存
+                button.delMovie.btn.btn-danger(type = "button", data-id = "#{item._id}") 删除
     ul.pagination
       - for (var i = 1; i <= totalPage; i++)
         - if ( currentPage === i) {
