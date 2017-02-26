@@ -9,6 +9,7 @@ var movieController = require('./Movie');
 var Movie = require('../models/movie.js');
 var charset = require('superagent-charset');
 var superagent = charset(require('superagent'));
+var phantom = require('phantom');
 
 // var mongoose = require('mongoose');
 // var Schema = mongoose.Schema;
@@ -33,7 +34,7 @@ exports.fetchPage = (req, res) => {
     var listStartTag = req.body.spider.listStart || '.co_content8 a';
     var listTag = req.body.spider.listTag || '/i/';
     var titleTag = req.body.spider.title || '.title_all h1';
-    var maxNumber = req.body.spider.maxNumber || 10;
+    var maxNumber = req.body.spider.maxNumber || 1;
 
      getPageAsync ( startUrl )
         .then ( parseList, (err) => {
@@ -57,19 +58,9 @@ exports.fetchPage = (req, res) => {
         return new Promise( function (resolve, reject) {
             console.log('开始解析列表');
             var $ = decodeHtml(html);
-            if ($.text().indexOf('window.location=') >= 0){
-                console.log('需要跳转', $.text());
-                var s = $.text().replace('window.location=', 'global.newUrl=');
-
-                var vm = require('vm');
-                vm.runInThisContext(s);
-                console.log(baseUrl + global.newUrl);
-
-            }
             var _id = '';
             var i = 0;
             $( listStartTag ).each( function (){
-                console.log($(this).attr('href'))
                 if ( i >= maxNumber ) return false;
                 i++;
                 _id = $(this).attr('href');
@@ -249,50 +240,33 @@ function getPageAsync ( url ) {
         console.log('开始抓取网址：' + url);
         if ( !url ) reject();
 
-        superagent
-            .get( url )
-            .charset('gb2312')
-            .on('error', err => {
+        var sitepage = null;
+        var phInstance = null;
+
+        phantom.create()
+            .then(instance => {
+                phInstance = instance;
+                return instance.createPage();
+            })
+            .then(page => {
+                sitepage = page;
+                return page.open( url ); 
+            })
+            .then( status => {
+                console.log(status);
+                return sitepage.property('content');
+            })
+            .then(content => {
+                console.log('抓取成功：');
+                resolve( content );
+                sitepage.close();
+                phInstance.exit();
+            })
+            .catch(err => {
                 console.log('抓取失败！' + url);
-                console.log(err);
-                reject(err)
+                reject(err);
+                phInstance.exit();
             })
-            .end((err, res) => {
-                if (err) {
-                    console.log(err);
-                    return;
-                }
-
-                var $ = decodeHtml(res.text);
-                if ($.text().indexOf('window.location=') >= 0){
-                    console.log('需要跳转', $.text());
-                    var s = $.text().replace('window.location=', 'global.newUrl=');
-
-                    var vm = require('vm');
-                    vm.runInThisContext(s);
-                    console.log(baseUrl + global.newUrl);
-                    getPageAsync ( startUrl )
-                        .then ( parseList, (err) => {
-                            console.log('抓取网页时出错：\n' + err);
-                            res.render('spider', {
-                                title: '爬虫出错'
-                                , spider: {
-                                    url: startUrl
-                                    , list: listStartTag
-                                    , title: titleTag
-                                    , maxNumber: maxNumber
-                                }
-                            })
-                        } )
-                        .then(function(){
-                            console.log('完成抓取');
-                        })
-                }
-
-                resolve(res.text);
-                console.log('抓取成功！');
-            })
-
 
 
         // var req = request({
