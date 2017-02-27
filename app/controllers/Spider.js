@@ -10,6 +10,7 @@ var Movie = require('../models/movie.js');
 var charset = require('superagent-charset');
 var superagent = charset(require('superagent'));
 var phantom = require('phantom');
+var Spider = require('../models/spider');
 
 // var mongoose = require('mongoose');
 // var Schema = mongoose.Schema;
@@ -257,6 +258,7 @@ function getPageAsync ( url ) {
                 return sitepage.property('content');
             })
             .then(content => {
+                console.log(content);
                 console.log('抓取成功：');
                 resolve( content );
                 sitepage.close();
@@ -345,8 +347,23 @@ function handleError (err) {
     console.log(err);
 }
 
+exports.findByName = function (req, res) {
+    res.render('spider', {
+        title: '创建一个新爬虫'
+        , spider: {} 
+    })
+}
+
 exports.new = function(req, res) {
     res.render('spider', {
-        title: '爬虫设置页'
+        title: '创建一个新爬虫'
+        , spider: {} 
     })
+}
+
+exports.save = (req, res) => {
+  var _spider = req.body.spider;
+  newCategory(_spider, function(){
+    res.redirect('/admin/spider/list');
+  });
 }
