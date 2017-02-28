@@ -49,10 +49,25 @@ $(function(){
   });
 
   $(".selectPjt").click( e => {
+    $('.dropdown-toggle').html( $(e.target).text() + "<span class='caret'></span>");
     var target = e.target;
     var id = $(target).text();
 
-    console.log(id);
+    console.log($(target).data('id'));
     
   })
+
+  $(".addPjt").click( e => {
+    console.log($(e.target).text());
+    $('.dropdown-toggle').html( $(e.target).text() + "<span class='caret'></span>");
+
+    $('#inputTitle').val('');
+    $('#inputUrl').val('');
+    $('#inputBase').val('');
+    $('#inputListC').val('');
+    $('#inputList').val('');
+    $('#inputNumber').val('');
+
+  })
+
 })
