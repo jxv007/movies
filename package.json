@@ -26,7 +26,8 @@
     "serve-favicon": "^2.3.2",
     "superagent": "^3.5.0",
     "superagent-charset": "^1.1.1",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "vue": "^2.2.1"
   },
   "main": "./bin/www",
   "devDependencies": {

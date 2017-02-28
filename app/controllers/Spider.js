@@ -347,38 +347,32 @@ function handleError (err) {
     console.log(err);
 }
 
-exports.findByName = function (req, res) {
-    Spider
-    .find()
-    .exec((err, spiders) => {
-        if (err) handleError(err);
-        
-        res.render('spider', {
-            title: '创建一个新爬虫'
-            , spider: spiders 
-        })
-
-        var results = movies.slice((page - 1) * rows, page * rows );
-        res.render('spider_list', {
-            title: "抓取结果列表"
-            , movies: results
-            , currentPage: page
-            , totalPage: Math.ceil( movies.length / rows)
-            , rows: rows
-        })
-    })
-}
 
 exports.new = function(req, res) {
-    res.render('spider', {
-        title: '创建一个新爬虫'
-        , spider: {} 
-    })
+    Spider
+        .find()
+        .exec((err, spiders) => {
+            if (err) handleError(err);
+            res.render('spider', {
+                title: '创建一个新爬虫'
+                , spiders: spiders 
+            })
+        })
 }
 
+// 保存spider方案到数据库
 exports.save = (req, res) => {
-  var _spider = req.body.spider;
-  newCategory(_spider, function(){
-    res.redirect('/admin/spider/list');
+  var spiderObj = req.body.spider;
+  var spider = new Spider(spiderObj);
+
+  spider.save((err, spider) => {
+    if (err) {
+      console.log(err);
+      return;
+    }
+    console.log(spider);
+    console.log('spider保存成功')
+    // res.json( { success: 1 
+    // });
   });
 }

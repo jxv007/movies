@@ -7,15 +7,14 @@ block content
       - var spider = {}
       form.form-horizontal(method="post", action="/admin/spider/save")
         .form-group
-          label.col-sm-3.control-label 爬虫方案
+          label.col-sm-3.control-label 方案
           .col-sm-7
             .btn-group.col-sm7
-              button#project.btn.btn-default.dropdown-toggle(data-toggle = 'dropdown') 请选择方案
+              button.btn.btn-default.dropdown-toggle(data-toggle = 'dropdown') 选择方案
                 span.caret
               ul.dropdown-menu(role = 'menu')
-                li.addPjt: a.active(href='#') 新增方案
                 each item in spiders
-                  li.selectPjt(class = 'item-id-' + item._id): a(href='#' ) #{item.title}
+                  li: a(href='#') item.title
         .form-group
           label.col-sm-3.control-label(for = "inputUrl") 方案名称
           .col-sm-7
@@ -68,4 +67,3 @@ block content
           .col-sm-offset-3.col-sm-9
             button.btn.btn-success(type="submit") 开始抓取
             button.btn.btn-danger(type="submit") 保存
-  script(src="/js/admin.js")

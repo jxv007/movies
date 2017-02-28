@@ -47,4 +47,12 @@ $(function(){
       }
     })
   });
+
+  $(".selectPjt").click( e => {
+    var target = e.target;
+    var id = $(target).text();
+
+    console.log(id);
+    
+  })
 })
