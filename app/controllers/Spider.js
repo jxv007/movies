@@ -349,21 +349,51 @@ function handleError (err) {
 
 
 exports.new = function(req, res) {
-    Spider
-        .find()
-        .exec((err, spiders) => {
-            if (err) handleError(err);
-            res.render('spider', {
-                title: '创建一个新爬虫'
-                , spiders: spiders 
+    var id = req.query.id;
+    if (id) {
+        console.log('显示爬虫方案：' )
+        Spider
+            .findById(id, (err, spider) => {
+                console.log(spider);
+                res.json({ 
+                    title: spider.title, 
+                    url: spider.url, 
+                    baseUrl: spider.baseUrl, 
+                    listContainer: spider.listContainer, 
+                    listTag: spider.listTag, 
+                    maxNumber: spider.maxNumber, 
+                    success: 1 });
             })
-        })
+
+    } else {
+        console.log('新建爬虫方案：' )
+        Spider
+            .find()
+            .exec((err, spiders) => {
+                if (err) handleError(err);
+                res.render('spider', {
+                    title: '创建一个新爬虫'
+                    , spiders: spiders 
+                })
+            })
+    }
 }
 
 // 保存spider方案到数据库
 exports.save = (req, res) => {
   var spiderObj = req.body.spider;
   var spider = new Spider(spiderObj);
+  var title = spider.title;
+  if (title) {
+      Spider.find({'title': title}, (err, spider) => {
+          if (spider) {
+              console.log(spider);
+              
+          }
+      })
+  }
+
+
 
   spider.save((err, spider) => {
     if (err) {
@@ -375,4 +405,12 @@ exports.save = (req, res) => {
     // res.json( { success: 1 
     // });
   });
+}
+
+exports.show = function(req, res) {
+    var id = req.query.id;
+    console.log(id);
+    if (id) {
+    }
+
 }

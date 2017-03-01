@@ -51,10 +51,25 @@ $(function(){
   $(".selectPjt").click( e => {
     $('.dropdown-toggle').html( $(e.target).text() + "<span class='caret'></span>");
     var target = e.target;
-    var id = $(target).text();
+    var id = $(target).data('id');
+    console.log(typeof(id));
+    console.log((id));
 
-    console.log($(target).data('id'));
-    
+    var tr = $('.item-id-'+ id); 
+    $.ajax({
+      type:"GET",
+      url:"/admin/spider?id=" + id
+    })
+    .done((results)=>{
+      if( results.success === 1){
+        $('#inputTitle').val(results.title);
+        $('#inputUrl').val(results.url);
+        $('#inputBase').val(results.baseUrl);
+        $('#inputListC').val(results.listContainer);
+        $('#inputList').val(results.listTag);
+        $('#inputNumber').val(results.maxNumber);
+      }
+    })
   })
 
   $(".addPjt").click( e => {

@@ -4,7 +4,6 @@ block content
   .contaniner
     </br>
     .row
-      - var spider = {}
       form.form-horizontal(method="post", action="/admin/spider/save")
         .form-group
           label.col-sm-3.control-label 爬虫方案
@@ -15,15 +14,15 @@ block content
               ul.dropdown-menu(role = 'menu')
                 li.addPjt: a.active(href='javascript:;') 新增方案
                 each item in spiders
-                  li.selectPjt(class = 'item-id-' + item._id): a(href='#' ) #{item.title}
+                  li.selectPjt(class = 'item-id-' + item._id): a(href='javascript:;' data-id = '#{item._id}') #{item.title}
         .form-group
           label.col-sm-3.control-label(for = "inputTitle") 方案名称
           .col-sm-7
-            input#inputTitle.form-control(type = "text", name="spider[title]", value = spider.title)                  
+            input#inputTitle.form-control(type = "text", name="spider[title]")                  
         .form-group
           label.col-sm-3.control-label(for = "inputUrl") 要抓取的影片网址
           .col-sm-7
-            input#inputUrl.form-control(type = "text", name="spider[url]", value = spider.url)
+            input#inputUrl.form-control(type = "text", name="spider[url]")
         .form-group
           label.col-sm-3.control-label(for = "inputBase") 基础地址
           .col-sm-7

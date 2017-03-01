@@ -52,6 +52,7 @@ module.exports = function(app){
   app.get('/admin/spider/new', User.signinRequired, User.adminRequired, Spider.new);
   app.post('/admin/spider/save', User.signinRequired, User.adminRequired, Spider.save);
   app.get('/admin/spider', User.signinRequired, User.adminRequired, Spider.new);
+  
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

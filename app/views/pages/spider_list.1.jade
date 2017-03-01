@@ -3,11 +3,9 @@ extends ../layout
 block content
   .container
     .row
-      .col-sm-1
-        a.btn.btn-warning(href='/admin/movie/new') 新增
+      .col-lg-2
+        a.btn.btn-warning(href='/admin/spider') 抓取新内容
         p
-      .col-sm-4
-        a.btn.btn-warning(href='/admin/spider') 抓取
     .row
       table.table.table-hover.table-bordered
         thead
@@ -26,18 +24,19 @@ block content
               td
                 if (item.category)
                   each cat in item.category
-                    #{cat.name} 
+                    #{cat.name}
+                else
               td #{item.director}
               td
                 if (item.state == 0)
                   草稿
                 else if (item.state == 1)
-                  已发布              
+                  已发布
               td #{item.year}
-              td #{moment(item.meta,updateAt).format('MM/DD/YYYY')}
-              //-td #{item.meta.updateAt}
+              td #{moment(item.meta, updateAt).format('MM/DD/YYYY')}
               td
                 a.btn.btn-primary(target="_blank", href="/admin/movie/update/"+item._id) 修改
+                button.saveMovie.btn.btn-warning(type = "button", data-id = "#{item._id}") 保存
                 button.delMovie.btn.btn-danger(type = "button", data-id = "#{item._id}") 删除
     ul.pagination
       - for (var i = 1; i <= totalPage; i++)
@@ -46,6 +45,6 @@ block content
             span #{currentPage}
         - } else {
             li
-              a(href='/admin/movie/list?p=#{i}&r=#{rows}') #{i}
+              a(href='/admin/spider/list?p=#{i}&r=#{rows}') #{i}
         - }
-  script(src="/js/admin.js")     
+  script(src="/js/admin.js")
