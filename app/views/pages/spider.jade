@@ -7,16 +7,6 @@ block content
       - var spider = {}
       form.form-horizontal(method="post", action="/admin/spider/save")
         .form-group
-          label.col-sm-3.control-label 爬虫方案
-          .col-sm-7
-            .btn-group.col-sm7
-              button#project.btn.btn-default.dropdown-toggle(data-toggle = 'dropdown') 请选择方案
-                span.caret
-              ul.dropdown-menu(role = 'menu')
-                li.addPjt: a.active(href='javascript:;') 新增方案
-                each item in spiders
-                  li.selectPjt(class = 'item-id-' + item._id): a(href='#' ) #{item.title}
-        .form-group
           label.col-sm-3.control-label(for = "inputTitle") 方案名称
           .col-sm-7
             input#inputTitle.form-control(type = "text", name="spider[title]", value = spider.title)                  
