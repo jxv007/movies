@@ -7,7 +7,7 @@ block content
         a.btn.btn-warning(href='/admin/movie/new') 新增
         p
       .col-sm-4
-        a.btn.btn-warning(href='/admin/spider') 抓取
+        a.btn.btn-warning(href='/admin/spider/list') 抓取
     .row
       table.table.table-hover.table-bordered
         thead
@@ -35,9 +35,9 @@ block content
                   已发布              
               td #{item.year}
               td #{moment(item.meta,updateAt).format('MM/DD/YYYY')}
-              //-td #{item.meta.updateAt}
               td
                 a.btn.btn-primary(target="_blank", href="/admin/movie/update/"+item._id) 修改
+                button.saveMovie.btn.btn-warning(type = "button", data-id = "#{item._id}") 保存
                 button.delMovie.btn.btn-danger(type = "button", data-id = "#{item._id}") 删除
     ul.pagination
       - for (var i = 1; i <= totalPage; i++)
@@ -48,4 +48,4 @@ block content
             li
               a(href='/admin/movie/list?p=#{i}&r=#{rows}') #{i}
         - }
-  script(src="/js/admin.js")     
+  script(src="/js/admin.js") 

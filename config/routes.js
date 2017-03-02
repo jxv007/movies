@@ -49,6 +49,7 @@ module.exports = function(app){
   //Spider
   app.post('/admin/spider/fetchPage', User.signinRequired, User.adminRequired, Spider.fetchPage);
   app.get('/admin/spider/list', User.signinRequired, User.adminRequired, Spider.list);
+  app.delete('/admin/spider/list', User.signinRequired, User.adminRequired, Spider.del);
   app.get('/admin/spider/new', User.signinRequired, User.adminRequired, Spider.new);
   app.post('/admin/spider/save', User.signinRequired, User.adminRequired, Spider.save);
   app.get('/admin/spider', User.signinRequired, User.adminRequired, Spider.new);

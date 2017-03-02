@@ -6,6 +6,7 @@ block content
     .row
       form.form-horizontal(method="post", action="/admin/spider/save")
         .form-group
+<<<<<<< HEAD
           label.col-sm-3.control-label 爬虫方案
           .col-sm-7
             .btn-group.col-sm7
@@ -16,6 +17,8 @@ block content
                 each item in spiders
                   li.selectPjt(class = 'item-id-' + item._id): a(href='javascript:;' data-id = '#{item._id}') #{item.title}
         .form-group
+=======
+>>>>>>> e9d267746b5741353a4a9ca6494e112d246cb330
           label.col-sm-3.control-label(for = "inputTitle") 方案名称
           .col-sm-7
             input#inputTitle.form-control(type = "text", name="spider[title]")                  

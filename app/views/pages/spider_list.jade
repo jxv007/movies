@@ -4,40 +4,32 @@ block content
   .container
     .row
       .col-lg-2
-        a.btn.btn-warning(href='/admin/spider') 抓取新内容
+        a.btn.btn-warning(href='/admin/spider/new') 新增方案
         p
     .row
       table.table.table-hover.table-bordered
         thead
           tr
-            th.col-md-3 电影名字
-            th.col-md-1 电影类别
-            th.col-md-2 导演
-            th.col-md-1 状态
-            th.col-md-1 上映时间
-            th.col-md-1 录入时间
+            th.col-md-3 规则名称
+            th.col-md-1 爬取数量
+            th.col-md-2 网址
+            th.col-md-1 基础网址
+            th.col-md-1 列表容器
+            th.col-md-1 列表项
             th.col-md-2 操作
         tbody
-          each item in movies
+          each item in spiders
             tr(class = 'item-id-' + item._id)
-              td: a(target="_blank", href="../movie/"+item._id) #{item.title}
+              td: a(target="_blank", href="../spider/"+item._id) #{item.title}
+              td #{item.maxNumber}
+              td #{item.url}
+              td #{item.baseUrl}
+              td #{item.listContainer}
+              td #{item.listTag}
               td
-                if (item.category)
-                  each cat in item.category
-                    #{cat.name}
-                else
-              td #{item.director}
-              td
-                if (item.state == 0)
-                  草稿
-                else if (item.state == 1)
-                  已发布
-              td #{item.year}
-              td #{moment(item.meta, updateAt).format('MM/DD/YYYY')}
-              td
-                a.btn.btn-primary(target="_blank", href="/admin/movie/update/"+item._id) 修改
-                button.saveMovie.btn.btn-warning(type = "button", data-id = "#{item._id}") 保存
-                button.delMovie.btn.btn-danger(type = "button", data-id = "#{item._id}") 删除
+                a.btn.btn-primary(target="_blank", href="/admin/spider/update/"+item._id) 修改
+                a.btn.btn-warning(target="_blank", href="/admin/spider/"+item._id) 抓取内容
+                button.delSpider.btn.btn-danger(type = "button", data-id = "#{item._id}") 删除
     ul.pagination
       - for (var i = 1; i <= totalPage; i++)
         - if ( currentPage === i) {

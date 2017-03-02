@@ -326,18 +326,17 @@ exports.list = function(req, res){
     var rows = parseInt(req.query.r, 10) || 10;
     var page = parseInt(req.query.p, 10) || 1;
 
-    Movie
-        .find({'state': 0})
-        .populate('category')
-        .exec((err, movies) => {
+    Spider
+        .find()
+        .exec((err, spiders) => {
             if (err) handleError(err);
             
-            var results = movies.slice((page - 1) * rows, page * rows );
+            var results = spiders.slice((page - 1) * rows, page * rows );
             res.render('spider_list', {
-                title: "抓取结果列表"
-                , movies: results
+                title: "爬虫方案列表"
+                , spiders: results
                 , currentPage: page
-                , totalPage: Math.ceil( movies.length / rows)
+                , totalPage: Math.ceil( spiders.length / rows)
                 , rows: rows
             })
         })
@@ -349,6 +348,7 @@ function handleError (err) {
 
 
 exports.new = function(req, res) {
+<<<<<<< HEAD
     var id = req.query.id;
     if (id) {
         console.log('显示爬虫方案：' )
@@ -377,6 +377,33 @@ exports.new = function(req, res) {
                 })
             })
     }
+=======
+  var id = req.query.id;
+  if (id) {
+    Spider
+        .findById(id, (err, spider) => {
+            if (err) handleError(err);
+            res.render('spider', {
+                title: '创建一个新爬虫'
+                , spider: spider 
+            })
+        })
+  }
+}
+
+//list delete spider
+exports.del = (req, res) => {
+  var id = req.query.id;
+  if (id) {
+    Spider.remove({ _id: id }, (err, spider) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      res.json({ success: 1 });
+    })
+  }
+>>>>>>> e9d267746b5741353a4a9ca6494e112d246cb330
 }
 
 // 保存spider方案到数据库
