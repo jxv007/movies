@@ -2,48 +2,51 @@ extends ../layout
 
 block content
   .contaniner
+    .row
+      .col-sm-offset-8
+        a.btn.btn-default(href='/admin/spider/list') 查看所有方案
     </br>
     .row
       form.form-horizontal(method="post", action="/admin/spider/save")
+        //- if ( !spider )
+        //-   - var spider = {}
+        if (spider._id)
+          input(type="hidden", name="spider[_id]", value = spider._id)
+        //- .form-group
+        //-   label.col-sm-3.control-label 爬虫方案
+        //-   .col-sm-7
+        //-     .btn-group.col-sm7
+        //-       button#project.btn.btn-default.dropdown-toggle(data-toggle = 'dropdown') 请选择方案
+        //-         span.caret
+        //-       ul.dropdown-menu(role = 'menu')
+        //-         li.addPjt: a.active(href='javascript:;') 新增方案
+        //-         each item in spiders
+        //-           li.selectPjt(class = 'item-id-' + item._id): a(href='javascript:;' data-id = '#{item._id}') #{item.title}
         .form-group
-<<<<<<< HEAD
-          label.col-sm-3.control-label 爬虫方案
-          .col-sm-7
-            .btn-group.col-sm7
-              button#project.btn.btn-default.dropdown-toggle(data-toggle = 'dropdown') 请选择方案
-                span.caret
-              ul.dropdown-menu(role = 'menu')
-                li.addPjt: a.active(href='javascript:;') 新增方案
-                each item in spiders
-                  li.selectPjt(class = 'item-id-' + item._id): a(href='javascript:;' data-id = '#{item._id}') #{item.title}
-        .form-group
-=======
->>>>>>> e9d267746b5741353a4a9ca6494e112d246cb330
           label.col-sm-3.control-label(for = "inputTitle") 方案名称
           .col-sm-7
-            input#inputTitle.form-control(type = "text", name="spider[title]")                  
+            input#inputTitle.form-control(type = "text", name="spider[title]", value = spider.title)                  
         .form-group
           label.col-sm-3.control-label(for = "inputUrl") 要抓取的影片网址
           .col-sm-7
-            input#inputUrl.form-control(type = "text", name="spider[url]")
+            input#inputUrl.form-control(type = "text", name="spider[url]",  value = spider.url)
         .form-group
           label.col-sm-3.control-label(for = "inputBase") 基础地址
           .col-sm-7
-            input#inputBase.form-control(type="text",name="spider[baseUrl]", value='')
+            input#inputBase.form-control(type="text",name="spider[baseUrl]", value=spider.baseUrl)
         .form-group
           label.col-sm-3.control-label(for = "inputListC") 列表容器标志
           .col-sm-7
-            input#inputListC.form-control(type="text",name="spider[listContainer]", value='')
+            input#inputListC.form-control(type="text",name="spider[listContainer]", value=spider.listContainer)
         .form-group
           label.col-sm-3.control-label(for = "inputList") 列表项标志
           .col-sm-7
-            input#inputList.form-control(type="text",name="spider[listTag]", value='')            
+            input#inputList.form-control(type="text",name="spider[listTag]", value=spider.listTag)            
         .form-group
           label.col-sm-3.control-label(for = "inputNumber") 抓取数量
           .col-sm-7
-            input#inputNumber.form-control(type="text",name="spider[maxNumber]", value='')
+            input#inputNumber.form-control(type="text",name="spider[maxNumber]", value=spider.maxNumber)
         .form-group
           .col-sm-offset-3.col-sm-9
-            button.btn.btn-success(type="submit") 开始抓取
             button.btn.btn-danger(type="submit") 保存
   script(src="/js/admin.js")

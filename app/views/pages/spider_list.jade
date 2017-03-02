@@ -10,13 +10,13 @@ block content
       table.table.table-hover.table-bordered
         thead
           tr
-            th.col-md-3 规则名称
+            th.col-md-1 规则名称
             th.col-md-1 爬取数量
             th.col-md-2 网址
             th.col-md-1 基础网址
             th.col-md-1 列表容器
             th.col-md-1 列表项
-            th.col-md-2 操作
+            th.col-md-3 操作
         tbody
           each item in spiders
             tr(class = 'item-id-' + item._id)
@@ -28,7 +28,7 @@ block content
               td #{item.listTag}
               td
                 a.btn.btn-primary(target="_blank", href="/admin/spider/update/"+item._id) 修改
-                a.btn.btn-warning(target="_blank", href="/admin/spider/"+item._id) 抓取内容
+                a.btn.btn-warning(target="_blank", href="/admin/spider/fetch/" + item._id) 抓取内容
                 button.delSpider.btn.btn-danger(type = "button", data-id = "#{item._id}") 删除
     ul.pagination
       - for (var i = 1; i <= totalPage; i++)

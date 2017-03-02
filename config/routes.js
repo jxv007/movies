@@ -47,12 +47,13 @@ module.exports = function(app){
   app.delete('/admin/category/list', Category.del);
 
   //Spider
-  app.post('/admin/spider/fetchPage', User.signinRequired, User.adminRequired, Spider.fetchPage);
+  app.get('/admin/spider/fetch/:id', User.signinRequired, User.adminRequired, Spider.fetchPage);
   app.get('/admin/spider/list', User.signinRequired, User.adminRequired, Spider.list);
   app.delete('/admin/spider/list', User.signinRequired, User.adminRequired, Spider.del);
   app.get('/admin/spider/new', User.signinRequired, User.adminRequired, Spider.new);
   app.post('/admin/spider/save', User.signinRequired, User.adminRequired, Spider.save);
   app.get('/admin/spider', User.signinRequired, User.adminRequired, Spider.new);
+  app.get('/admin/spider/update/:id', User.signinRequired, User.adminRequired, Spider.update);
   
 
 // catch 404 and forward to error handler

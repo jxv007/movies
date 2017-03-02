@@ -124,10 +124,10 @@ exports.list = function(req, res) {
 
     Movie
         .find({'state': {'$gte': 0}})
+        .sort({updateAt : -1})
         .populate('category')
         .exec((err, movies) => {
             if (err) handleError(err);
-            
             var results = movies.slice((page - 1) * rows, page * rows );
             res.render('movie_list', {
                 title: "影片列表"
@@ -196,9 +196,9 @@ exports.new = function(req, res) {
 // 2. 否则查找影片类型是否都已经存在，不存在的要创建类型
 // 3. new Movie, 保存，保存影片时，需要更新类型中的引用。
 exports.saveMovie = function (movieObj){
-  console.log('保存影片数据：');
+  console.log('保存影片数据：' + movieObj.title);
 
-  Movie.findOne({name:movieObj.name}, function(err, movie){
+  Movie.findOne({'name': movieObj.name}, function(err, movie){
     if (err) {
       console.log(err);
       return;
