@@ -5,6 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
+var Promise = require('bluebird');
 var _ = require('underscore');
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
@@ -14,6 +15,7 @@ var app = express();
 app.locals.moment = require('moment');
 
 // mongoDB
+mongoose.Promise = Promise;
 var db = mongoose.connect('mongodb://localhost:27017/movies');
 db.connection.on("error", function(err){
   // 连接mongodb前要启动 mongd 服务

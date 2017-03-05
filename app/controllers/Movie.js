@@ -196,29 +196,36 @@ exports.new = function(req, res) {
 // 2. 否则查找影片类型是否都已经存在，不存在的要创建类型
 // 3. new Movie, 保存，保存影片时，需要更新类型中的引用。
 exports.saveMovie = function (movieObj){
-  console.log('保存影片数据：' + movieObj.title);
+        if (!movieObj) {
+            console.log('要保存的影片数据不存在');
+            return;
+        }
+        console.log('保存影片数据：' + movieObj.title);
 
-  Movie.findOne({'name': movieObj.name}, function(err, movie){
-    if (err) {
-      console.log(err);
-      return;
-    }
+        var getMovie;
 
-    if (movie) {
-      console.log('影片已存在：' + movie.name);
-    } else {
-      var getCates = [];
-      movieObj.category.forEach( function (name) {
-        getCates.push(getCategoryIdAsync(name));
-      })
-      
-      Promise.all(getCates)
-        .then( (res) => {
-          movieObj.category = res;
-          newMovie(movieObj);
-        })
-    }
-  })
+        getMovie = Movie.findOne({'name': movieObj.name}).exec()
+            .then( function(movie){
+                if (movie) {
+                    console.log('影片已存在：' + movie.name);
+                } else {
+                    var getCates = [];
+                    movieObj.category.forEach( function (name) {
+                        getCates.push(getCategoryIdAsync(name));
+                    })
+                    
+                    Promise.all(getCates)
+                      .then( (res) => {
+                        movieObj.category = res;
+                        newMovie(movieObj);
+                    })
+                }
+            })
+            .then( function (){})
+            .error(function(error){
+                return 'Promise Error:'+ error;
+            })
+        return getMovie;
 };
 
 
@@ -247,41 +254,44 @@ function getCategoryIdAsync (name){
   });
 }
 
-// 创建 Movie 实例，保存到数据库，并关联 movie 和 category
-// 注意 category 应该是 categoryId 数组
+// 创建 Movie 实例，保存到数据库，
+// 关联 movie 和 category：
+// 1. 在 movie 中保存 categoryId
+// 2. 在 category 中保存 movieID,
+// 注意: category 中保存的是 categoryId 数组
 function newMovie ( movieObj, cb ) {
-  console.log('创建影片实例')
-  console.log(movieObj);
+  if (!movieObj) {
+    throw new Error('Movie Object 不能为空');
+  }
+  console.log('创建影片实例：${movieObj.title}')
+  
+  var cats = movieObj.category;
   var movie = new Movie( movieObj );
-  movie.save( function (err, movie) {
-    if (err) {
-      console.log(err);
-      return;
-    }
 
-    movie.category.forEach(function (categoryId){
-      // saveCategory(movie._id, categoryId);
-       Category.findById(categoryId, function(err, category){
-        if (err) {
-          console.log(err);
-          return;
-        }
-        if (category) {
-          category.movies.push(movie._id);
-          category.save(function(err, category){
-            if (err) {
-              console.log(err);
-              return;
-            }
-          });
-        }
-      });
+  return movie.save( (err, movie) => {
+      return movie._id;
+    })
+    .then( movieId => {
+      cats.forEach( categoryId => {
+        linkCategory(movieId, categoryId);
+      })
     });
-    // if (cb) cb();
-  });
-  return movie;
 };
 
+function linkCategory(movieID, categoryId) {
+    return 
+      Category.findById(categoryId)
+        .then( category => {
+          if (!category) {
+            throw new Error('没找到类别ID：' + categoryId);
+          }
+          category.movies.push(movieID);
+          return category.save();
+        })
+        .catch( err => {
+          console.log('关联 movie 和 category 时出错' + err); 
+        })
+}
 
 // 给影片增加类别
 function saveCategory(movieId, categoryId){

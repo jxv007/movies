@@ -5,8 +5,7 @@ var request = require('request');
 var iconv = require('iconv-lite');
 var BufferHelper = require('bufferhelper');
 var Promise = require('bluebird');
-var movieController = require('./Movie');
-var Movie = require('../models/movie.js');
+var Movie = require('./Movie')
 var charset = require('superagent-charset');
 var superagent = charset(require('superagent'));
 var phantom = require('phantom');
@@ -58,40 +57,44 @@ exports.fetchPage = (req, res) => {
 
     // 解析列表, 并保存至数组
     function parseList ( html ) {
-        console.log('开始解析列表');
-        var $ = decodeHtml(html);
-        var listArray = [];
-        var _listItemUrl = '';
-        var i = 0;
-        $( spider.listContainer ).each( function (){
-            if ( i >= maxNumber ) return false;
-            i++;
-            _listItemUrl = $(this).attr('href');
-            if ( listTag === _listItemUrl.substr(0, listTag.length) ){
-                console.log(_listItemUrl);
-                listArray.push( baseUrl + _listItemUrl );
+        return new Promise( (resolve, reject) => {
+            console.log('开始解析列表');
+            var $ = decodeHtml(html);
+            var listArray = [];
+            var _listItemUrl = '';
+            var i = 0;
+            $( spider.listContainer ).each( function (){
+                if ( i >= maxNumber ) return false;
+                i++;
+                _listItemUrl = $(this).attr('href');
+                if ( listTag === _listItemUrl.substr(0, listTag.length) ){
+                    console.log(_listItemUrl);
+                    listArray.push( baseUrl + _listItemUrl );
+                }
+            });
+            if ( listArray.length > 0 ) {
+                resolve(listArray);
+            } else {
+                reject(new Error('列表为空'));
             }
-        });
-
-        return listArray;
+        })
     };
 
     // 依次爬取数组中的地址
     function fetchListArray( listArray ) {
-        console.log('依次爬取列表数组');
-        listArray.forEach( url => {
+        console.log('爬取列表数组');
+        
+        listArray.forEach( (url, index) =>  
             getPageAsync ( url )
                 .then ( parseMovie )
+                .then ( Movie.saveMovie)
                 .then ( movie => {
-                    if (movie) {
-                        movieController.saveMovie(movie);
-                    }
-                }, onError)
-                .then ( ()=> {
-                    console.log('保存成功')
-                    // res.redirect('/admin/movie/list');
-                }) 
-        })
+                    console.log('${movie.title} : 保存成功')
+                })
+                .catch( err => {
+                    console.log('爬取列表项时出错：' + err);
+                })
+        )
     }
 
     function onError(err) {
@@ -110,8 +113,8 @@ exports.fetchPage = (req, res) => {
     // 解析电影详情网页内容，返回一个JSON
     function parseMovie ( html ) {
         console.log('开始解析影片详情页面')
-        var title, name = '', oldName, year, country, language, type, subtitle, imdb, douban, 
-            format, videoSize, fileSize, videoLength, director, starring, intro, poster, imgs, download;
+        var title, name, oldName, year, country, language, type, subtitle, imdb, douban, imgs, 
+            format, videoSize, fileSize, videoLength, director, starring, intro, poster, download;
         var starring = [], awards = [], catetorys = [];
         var movie = {};
 
@@ -230,93 +233,72 @@ exports.fetchPage = (req, res) => {
         return (movie);
     }
 
-function saveMovie (movie) {
-    // TODO:调用 Movie.save 保存影片到数据库中，保存图片到本地服务器
-    
-}
+    function saveImage ( url, name ) {
+        var _url = imgPath + name;
+        http.get( url, function(res) {
+            var _imgData = '';
+            res.setEncoding('binary');
 
-function showMovie( movie ){
-    
-}
-
-function saveImage ( url, name ) {
-    var _url = imgPath + name;
-    http.get( url, function(res) {
-        var _imgData = '';
-        res.setEncoding('binary');
-
-        res
-            .on('data', function(chunk){
-                _imgData += chunk;
-            })
-            .on('end', function(){
-                fs.writeFile(_url, _imgData, 'binary', function(err){
-                    if (err){
-                        console.log('获取图片错误：\n' + err);
-                    }
-                    return _url;
+            res
+                .on('data', function(chunk){
+                    _imgData += chunk;
                 })
-            })
-        
-    });
-};
+                .on('end', function(){
+                    fs.writeFile(_url, _imgData, 'binary', function(err){
+                        if (err){
+                            console.log('获取图片错误：\n' + err);
+                        }
+                        return _url;
+                    })
+                })
+            
+        });
+    };
 
 
-// 抓取指定 url 网页内容，并返回 Promise 实例
-function getPageAsync ( url ) {
-    return new Promise( function (resolve, reject) {
-        console.log('开始抓取网址：' + url);
-        if ( !url ) reject();
+    // 抓取指定 url 网页内容，并返回 Promise 实例
+    function getPageAsync ( url ) {
+        return new Promise( function (resolve, reject) {
+            console.log('开始抓取网址：' + url);
+            if ( !url ) reject();
 
-        var sitepage = null;
-        var phInstance = null;
+            var sitepage = null;
+            var phInstance = null;
 
-        phantom.create()
-            .then(instance => {
-                phInstance = instance;
-                return instance.createPage();
-            })
-            .then(page => {
-                sitepage = page;
-                return page.open( url ); 
-            })
-            .then( status => {
-                console.log(status);
-                return sitepage.property('content');
-            })
-            .then(content => {
-                // console.log(content);
-                console.log('抓取成功：' + url);
-                resolve( content );
-                sitepage.close();
-                phInstance.exit();
-            })
-            .catch(err => {
-                console.log('抓取失败！' + url);
-                reject(err);
-                phInstance.exit();
-            })
-    });
+            phantom.create()
+                .then(instance => {
+                    phInstance = instance;
+                    return instance.createPage();
+                })
+                .then(page => {
+                    sitepage = page;
+                    return page.open( url ); 
+                })
+                .then( status => {
+                    console.log(status);
+                    return sitepage.property('content');
+                })
+                .then(content => {
+                    // console.log(content);
+                    console.log('抓取成功：' + url);
+                    resolve( content );
+                    sitepage.close();
+                    phInstance.exit();
+                })
+                .catch(err => {
+                    console.log('抓取失败！' + url);
+                    reject(err);
+                    phInstance.exit();
+                })
+        });
 
-};
+    };
 
-// 打印影片数据
-function printData (movie) {
-    console.log('标题：' + movie.title + '\n');
-    console.log(movie.introduce + '\n');
-    console.log(movie.download + '\n');
-}
+    // 将网页转为 UTF-8，并返回 cheerio 解析解析的 DOM
+    function decodeHtml ( html, charset = 'gb2312' ) {
+        return (cheerio.load( html));
+    };
 
-// 将网页转为 UTF-8，并返回 cheerio 解析解析的 DOM
-function decodeHtml ( html, charset = 'gb2312' ) {
-    // return (cheerio.load( iconv.decode(html, charset)));
-    return (cheerio.load( html));
-};
-
-// 转换url
-function parseUrl (id) {
-    return baseUrl + id;
-}
 
 };
 
