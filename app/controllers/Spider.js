@@ -58,8 +58,8 @@ exports.fetchPage = (req, res) => {
     // 解析列表, 并保存至数组
     function parseList ( html ) {
         return new Promise( (resolve, reject) => {
-            console.log('开始解析列表');
             var $ = decodeHtml(html);
+            console.log('开始解析列表:');
             var listArray = [];
             var _listItemUrl = '';
             var i = 0;
@@ -127,6 +127,7 @@ exports.fetchPage = (req, res) => {
         // poster = saveImage( $('#Zoom p img').first().attr('src'), 'poster.jpg');
         poster = $('#Zoom p img').first().attr('src');
         imgs = $('#Zoom p img').last().attr('src');
+        if (imgs === poster) imgs = '';
 
         var _txt = '';
         var _t = '';
@@ -186,7 +187,7 @@ exports.fetchPage = (req, res) => {
                 })
             }
             if ( _txt.indexOf('◎简　　介') >= 0 ) {
-                intro = $(this).text();
+                intro = $(this).next().text();
             }
             if ( _t = _txt.split('◎获奖情况')[1] ) {
                 awards.push( _t.trim() );
@@ -201,7 +202,7 @@ exports.fetchPage = (req, res) => {
             }
         })
 
-        download = $('#Zoom a').attr('href');
+        download = $('#Zoom a').text();
         
         movie = {
             title: title 
@@ -220,7 +221,7 @@ exports.fetchPage = (req, res) => {
             , fileSize: fileSize   
             , videoLength: videoLength 
             , director: director 
-            , starring: []    
+            , starring: starring    
             , intro: intro      
             , award: awards   
             , poster: poster   

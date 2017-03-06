@@ -28,11 +28,10 @@ block content
                   each cat in item.category
                     #{cat.name} 
               td #{item.director}
-              td
-                if (item.state == 0)
-                  草稿
-                else if (item.state == 1)
-                  已发布              
+              if (item.state == 0)
+                td 草稿
+              else if (item.state == 1)
+                td 已发布              
               td #{item.year}
               td #{moment(item.meta,updateAt).format('MM/DD/YYYY')}
               td

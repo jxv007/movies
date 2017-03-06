@@ -167,7 +167,7 @@ exports.detail = function(req, res) {
       .populate('from rely.from rely.to', 'username')
       .exec((err, comments) => {
         res.render('movie_detail', {
-          title: '影片详情',
+          title: movie.title,
           movie: movie,
           comments: comments
         })
