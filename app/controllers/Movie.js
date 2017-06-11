@@ -2,6 +2,23 @@ var Movie = require('../models/movie.js');
 var Comment = require('../models/comment.js');
 var Category = require('../models/category.js');
 
+// 路由器解析 —— 显示影片录入页
+// 传入categories 和一个新创建的 movie 空对象
+exports.new = function(req, res) {
+  Category.find((err, categories) => {
+    if (err) {
+      console.log('Movie new without category error:\n' + err);
+      return;
+    }
+
+    res.render('movie_admin', {
+      title: '电影录入页',
+      categories: categories,
+      movie: {}
+    })
+  })
+};
+
 //admin update movie
 exports.update = (req, res) => {
   var id = req.params.id;
@@ -37,20 +54,36 @@ exports.saveState = (req, res) => {
   }
 }
 
-// admin post movie
+/*
+// admin post movie 后台更新页
+// 保存从后台录入页post过来的数据
+    从表单 post 的数据可能是新增的，也可能是对已有数据的更新，所以要判断数据中是否存有影片 _id：
+    服务端通过 bodyParser 解析表单信息，将结果放在 req.body 中，通过 req.body.movie 取到该表单中的信息。
+    那么 req.body.movie._id 就是隐藏表单项的值了（_id）。
+    _id 存在，则更新已有影片数据；_id 不存在，则创建一个新影片记录。
+    保存影片同时要保存影片与分类的关系：在影片中保存分类ID，在分类中保存影片ID。
+    影片和分类数据保存成功后，页面重定向到该电影的详情页.
+    如果影片分类是一个新的分类（只有 categoryName 没有 categoryId），
+    则要先创建并保存该影片ID到该分类中（建立关联）
+    注意：因为 movieObj 中没有分类ID，所以创建分类后需要再次将 分类ID 保存中影片中。 
+*/
 exports.save = (req, res) => {
-  var id = req.body.movie._id;
+  var _movieID = req.body.movie._id;
   var movieObj = req.body.movie;
-  var _movie;
-  if (id) {
-    Movie.findById(id, (err, movie) => {
+
+	if ( req.poster ) { 
+		movieObj.poster = req.poster;
+	}
+
+  if ( _movieID ) {
+    Movie.findById(_movieID, (err, movie) => {
       if (err) {
         console.log(err);
         return;
       }
 
       var originCategoryId = movie.category.toString();
-      Movie.findOneAndUpdate({ _id: id }, movieObj, { new: true }, (err, movie) => {
+      Movie.findOneAndUpdate({ _id: _movieID }, movieObj, { new: true }, (err, movie) => {
         if (err) {
           console.log(err);
           return;
@@ -91,29 +124,48 @@ exports.save = (req, res) => {
 
     })
   } else {
-    newMovie(movieObj, function(){
-      res.redirect('/admin/movie/' + movie._id);
-    })
-    _movie = new Movie(movieObj);
-    var categoryId = _movie.category;
-    _movie.save((err, movie) => {
-      if (err) {
-        console.log(err);
-        return;
+		var categoryId = movieObj.category; 
+		var categoryName = movieObj.categoryName;
+    var _movie = new Movie(movieObj);
+
+		_movie.state = 1;
+		_movie.save( (err, newMovie) => {
+			if ( err ) {
+					console.log(err);
+			}
+      // 处理影片分类，
+			if ( categoryId ) {
+        // 如果选择了已有的分类，则将此影片ID保存到该分类中
+				Category.findById( categoryId, (err, cat) => {
+          if ( err ) { console.log(err); }     
+
+					cat.movies.push( newMovie._id );
+					cat.save((err, category) => {
+            if ( err ) { console.log(err); }     
+						
+						res.redirect('/admin/movie/' + newMovie._id);
+					});
+				});
+			}
+			else if ( categoryName ) { //若按钮分类没被选则打字新建一个
+				var newCat = new Category({
+					name: categoryName,
+					movies: [newMovie._id]
+				});
+				
+				newCat.save((err, category) => {
+          if ( err ) { console.log(err); } 
+
+					newMovie.category = category._id;
+					newMovie.save((err, movie) => {
+						res.redirect('/admin/movie/' + newMovie._id);
+					});
+				});
+			}
+      else {
+        res.redirect('/admin/movie/' + newMovie._id);
       }
-      console.log(categoryId);
-      Category.findById(categoryId, (err, category) => {
-        if (err) {
-          console.log(err);
-          return;
-        }
-        console.log(category);
-        category.movies.push(movie);
-        category.save((err, category) => {
-          res.redirect('/admin/movie/' + movie._id);
-        })
-      })
-    })
+		});
   }
 }
 
@@ -137,7 +189,6 @@ exports.list = function(req, res) {
                 , rows: rows
             })
         })
-
 }
 
 //list delete movie
@@ -175,21 +226,7 @@ exports.detail = function(req, res) {
   })
 }
 
-// 显示影片录入页
-exports.new = function(req, res) {
-  Category.find((err, categories) => {
-    if (err) {
-      console.log('Movie new without category error:\n' + err);
-      return;
-    }
 
-    res.render('movie_admin', {
-      title: '电影录入页',
-      categories: categories,
-      movie: {}
-    })
-  })
-};
 
 // 解析movieObj，保存到影片数据库
 // 1. 查找是否已经存在相同名称、相同导演的影片，如存在则做更新处理

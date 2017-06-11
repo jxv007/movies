@@ -3,23 +3,30 @@ extends ../layout
 block content
   .contaniner
     .row
+      .col-sm-10.col-sm-offset-2
+        label.col-sm-1.control-label 豆瓣同步
+        input#douban.col-sm-2(type="text", placeholder="输入豆瓣电影的ID号")
+        button#btn-douban.col-sm-2.btn 获取
       form.form-horizontal(method="post", action="/admin/movie/save")
         if (movie._id)
           input(type="hidden", name="movie[_id]", value = movie._id)
         .form-group
-          label.col-sm-3.control-label(for="inputCategory") 电影分类
+          label.col-sm-3.control-label(for="inputCategory") 输入类别
           .col-sm-7
-            input#inputCategory.form-control(type="text", name="movie[categoryName]", value = movie.categoryName)
+            input#inputCategory.form-control(type="text", placeholder="输入新类别名", name="movie[categoryName]", value = movie.categoryName)
         .form-group
-          label.col-sm-3.control-label 分类
-          each cat in categories
-            label.radio-inline
-              if (movie._id)
-                input(type="radio", name="movie[category]", value="#{cat._id}" checked = (cat._id.toString() == movie.category.toString()))
-                | #{cat.name}
-              else
-                input(type="radio", name="movie[category]", value="#{cat._id}")
-                | #{cat.name}
+          label.col-sm-3.control-label 选择已有分类
+          if (categories)
+            each cat in categories
+              label.radio-inline
+                if (movie._id)
+                  input(type="radio", name="movie[category]", value="#{cat._id}" checked = (cat._id.toString() == movie.category.toString()))
+                  | #{cat.name}
+                else
+                  input(type="radio", name="movie[category]", value="#{cat._id}")
+                  | #{cat.name}
+          else
+            label.col-sm-3.control-label 分类
         .form-group
           label.col-sm-3.control-label(for="inputTitle") 电影名字
           .col-sm-7
@@ -55,3 +62,4 @@ block content
         .form-group
           .col-sm-offset-2.col-sm-10
             button.btn.btn-danger(type="submit") 录入
+  script(src="/js/admin.js")

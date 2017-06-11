@@ -20,13 +20,20 @@ module.exports = function(app){
   app.get('/admin',Admin.index);
 
   //Movie
+  // 影片管理列表
   app.get('/admin/movie/list',User.signinRequired,User.adminRequired, Movie.list);
+  // 更新影片
   app.get('/admin/movie/update/:id',User.signinRequired,User.adminRequired, Movie.update);
+  // 从影片列表中删除
   app.delete('/admin/movie/list', Movie.del);
+  // 新增影片
   app.get('/admin/movie/new', User.signinRequired, User.adminRequired, Movie.new);
+  // 保存影片
   app.post('/admin/movie/save', Movie.save);
   app.get('/admin/movie/state', Movie.saveState);
+  // 影片详情展示
   app.get('/admin/movie/:id', User.signinRequired, Movie.detail);
+  // 影片详情展示
   app.get('/movie/:id', Movie.detail);
 
   //User

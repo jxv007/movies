@@ -56,7 +56,10 @@ block content
           dt 上映年份
           dd=movie.year
           dt 类　　别
-          dd=movie.category
+          dd
+            if (movie.category)
+              each cat in movie.category
+                #{cat._id} 
           dt 字　　幕
           dd=movie.subtitle
           dt IMDb评分
